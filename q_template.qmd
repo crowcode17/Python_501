@@ -1,0 +1,27 @@
+---
+title: "title"
+date: last-modified
+author: "Hayden Coke"
+format:
+  html:
+    embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+```

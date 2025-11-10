@@ -1,0 +1,410 @@
+---
+title: "NumPy Basics"
+date: last-modified
+author: "Hayden Coke and Bekah Peterson"
+format:
+  html
+jupyter: python3
+---
+
+## Alternate-Universe Python
+
+### The ndarray Object
+
+NumPy's main object is the **homogeneous multidimensional array** (`ndarray`). It's a table of elements of the same type, indexed by a tuple of non-negative integers. In NumPy, dimensions are called **axes**.
+
+For example, the array `[1, 2, 1]` has one axis with 3 elements. The 2D array below has 2 axes - the first axis has length 2, the second has length 3:
+
+```python
+[[1., 0., 0.],
+ [0., 1., 2.]]
+```
+
+### Key Attributes
+
+```{python}
+import numpy as np
+
+# Create a sample array
+a = np.arange(15).reshape(3,5) # 3 rows, 5 columns; values 0-14
+print(a)
+
+# Dimensions of the array
+print("Shape of a:", a.shape) # 3 5
+
+# Number of axes
+print("Dimensions:", a.ndim) # 2
+
+# Total number of elements
+print("# of elements:", a.size) # 15
+
+# Type of elements
+print("Type of elements:", a.dtype) # int64
+
+# Size in bytes of each element
+# skip
+
+# Object type
+print("Object type:", type(a)) # numpy ndarray
+
+```
+
+```{python}
+# Create another simple array
+
+```
+
+## Array Creation
+
+There are several ways to create NumPy arrays.
+
+### From Python Lists/Tuples
+
+```{python}
+# Create array from a list
+a = np.array([2,3,4])
+print(a)
+
+# Create array with floats
+b = np.array([1.2, 3.4, 5.6])
+print(b)
+
+```
+
+**Common mistake**: Calling `array` with multiple arguments instead of a single sequence:
+
+```{python}
+# This is WRONG and will cause an error:
+# wrong = np.array(1,2,3,4)
+
+```
+
+### Multi-dimensional Arrays
+
+```{python}
+# 2D array from nested sequences
+b = np.array([(1,2,3), (4,5,6)]) 
+print(b)
+
+# Specify data type explicitly
+c = np.array([[1,2,3], [4,5,6]], dtype=float)
+print(c)
+
+```
+
+### Arrays with Initial Content
+
+Often you know the size but not the initial values. NumPy provides functions for this:
+
+```{python}
+# Array of zeros
+zeros = np.zeros((3,4))
+print(zeros)
+
+# Array of ones with specific dtype
+ones = np.ones((2,3,4))
+print(ones)
+
+# Empty array (random initial content)
+
+```
+
+### Sequences of Numbers
+
+```{python}
+# Using arange (like Python's range)
+seq1 = np.arange(10,30,5) # START, STOP, STEP (does not include stop)
+print(seq1)
+
+# arange with float step
+seq2 = np.arange(0,2,0.5)
+
+# Using linspace (better for floats)
+seq3 = np.linspace(0, 2*np.pi, 10) # INCLUDES ENDPOINT
+print(seq3)
+
+# Useful for evaluating functions
+
+```
+
+## Basic Operations
+
+### Arithmetic Operations
+
+Arithmetic operators on arrays apply **element-wise**:
+
+```{python}
+# Create two arrays
+a = np.array([20,30,40,50])
+b = np.arange(4) 
+
+print(a)
+print(b)
+
+# Element-wise subtraction
+c = a - b # ok because these arrays have the same dimensions
+print(c)
+
+# Element-wise operations
+print(b**2)
+print(10 * np.sin(a))
+print(a < 35)
+
+```
+
+### Matrix Operations
+
+The product operator `*` operates element-wise. For matrix multiplication, use `@` or `dot()`:
+
+```{python}
+# Create two matrices
+
+
+# Element-wise product
+
+
+# Matrix product
+
+
+# Alternative matrix product syntax
+
+```
+
+### In-place Operations
+
+Some operations modify the existing array:
+
+```{python}
+a = np.ones((2, 3))
+
+# Create a random number generator
+rg = np.random.default_rng(9831729387912873)
+b = rg.random((2, 3))
+
+print(a)
+print(b)
+
+# In-place multiplication
+a *= 3
+
+# In-place addition
+a += 3
+
+```
+
+### Unary Operations
+
+Many operations are implemented as methods:
+
+```{python}
+# Create a random array
+
+```
+
+### Operations Along Axes
+
+You can apply operations along specific axes:
+
+```{python}
+# Apply the .sum function
+b = np.arange(12).reshape(3,4)
+print(b.sum())
+
+```
+
+## Indexing and Slicing
+
+### One-dimensional Arrays
+
+One-dimensional arrays can be indexed and sliced like Python lists:
+
+```{python}
+# Create an array
+a = np.arange(10)**3
+print(a)
+
+# Basic indexing
+print(a[2])
+
+# Slicing
+print(a[2:5]) # 2nd, 3rd, 4th, NOT 5th
+
+# Advanced slicing and assignment
+print(a[:6:2]) # start stop step - first position blank = start at 0
+
+# Reverse the array
+print(a[::-1]) # step backwards
+
+```
+
+### Multi-dimensional Arrays
+
+Multi-dimensional arrays can have one index per axis:
+
+```{python}
+b = np.arange(15).reshape(5,3)
+
+# Single element access
+print(b[1,2])
+
+# Slicing rows and columns
+print(b[1:3, :]) # all columns from the first and second row
+
+# When fewer indices are provided, missing indices are complete slices
+print(b[0]) # entire 0th row
+
+```
+
+### Iterating Over Arrays
+
+```{python}
+# Iterating over multidimensional arrays is done with respect to the first axis
+for row in b:
+  print(row)
+
+```
+
+### Boolean Indexing
+
+```{python}
+# Create an array
+a = np.arange(12).reshape(3,4)
+
+# Create boolean mask
+b = a > 4
+print(b) # True wherever the value in a is greater than 4
+
+# Use boolean indexing
+print(a[b]) # print only the true values as an array
+
+# Boolean indexing for assignment
+a[b] = 0
+print(a)
+
+```
+
+## Array Creation Practice
+
+```{python}
+# Create an array of values from 0 to 22 in increments of 2, reshaped to have 4 rows and 3 columns. Print the array to check your work.
+a = np.arange(0,23,2).reshape(4,3)
+print(a)
+
+# Print the number of dimensions / axes in the array
+print("Dimensions:", a.ndim)
+
+# Print the shape of the array
+print("Shape:", a.shape)
+
+# Print the number of elements in the array
+print("Number of elements:", a.size)
+
+# Print the number of rows in the array
+print("rows:", a.shape[0])
+print("rows:", len(a))
+
+# Print the data type of the array elements
+print("data type of elements:", a.dtype)
+
+# Print the data type of the array itself
+print("data type of array:", type(a))
+
+# Create another array of 20 values equally spaced between 0 and 24, reshaped to 5 rows and 4 columns. Print the array to check your work.
+b = np.linspace(0,24,20).reshape(5,4) # 0 start: 24 stop: 20 total
+print(b)
+
+```
+
+## Array Slicing Practice
+
+Given the following numpy array:
+
+```{python}
+A = np.array([[  1,   2,   3,   4],
+              [  5,   6,   7,   8],
+              [  9,  10,  11,  12]])
+```
+
+Write the necessary python code to obtain each of the following slices:
+
+```{python}
+# 1: 11
+print(A[2,2])
+
+# 2: [1, 5, 9]
+print(A[:,0])
+
+# 3: [4, 8, 12]
+print(A[:,-1])
+
+# 4: [5, 6, 7, 8]
+print(A[1])
+
+# 5: [[1,  3], 
+#     [5,  7],
+#     [9, 11]]
+print(A[:, 0:3:2])
+
+# 6: [[ 2,  4], 
+#     [ 6,  8],
+#     [10, 12]]
+print(A[:, 1:4:2])
+
+# 7: [ 6  7  8  9 10 11 12]
+mask = A >= 6
+print(A[mask])
+
+# 8: [1, 3, 5, 7, 9, 11]
+mask = A % 2 != 0
+print(A[mask])
+
+```
+
+# Types of Variables
+
+For each of the following, describe how the information is encoded (Python data type) and what information is encoded (type of variable).
+
+1. The height of every student in cm (162, 164.2, 173.4, 180, 181.1)
+
+- floats
+- continuous
+
+2. The eye color of each student (“Green”, “Brown”, “Black”, “Blue”)
+
+- string
+- nominal 
+
+3. Happiness on a scale of 1-10 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+- integers
+- ordinal
+
+4. Happiness on a scale of 1-10 (“1”, “2”, “3”, “4”, “5”, “6”, “7”, “8”, “9”, ”10”)
+
+- string
+- ordinal
+
+5. Shoe sizes (7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11)
+
+- float
+- discrete
+
+6. Clothing sizes (“small”, “medium”, “large”)
+
+- string
+- ordinal
+
+7. Clothing sizes (0, 2, 4, 6, 8, 10, 12, 14)
+
+- integer
+- discrete
+
+8. Whether a light switch is turned on (“True”, “False”)
+
+- string
+- nominal 
+
+9. Whether it’s raining or not (True, False)
+
+- boolean
+- nominal

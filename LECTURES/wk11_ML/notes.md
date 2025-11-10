@@ -1,0 +1,49 @@
+- Notes:
+    - goal is to build a model that allows us to *predict unseen data*
+    - Supervised learning: **pre-categorized** data for predictions and predictive models
+        - classification
+            - make classes based on existing data, predict classes for new data
+        - **regression**
+    - Unsupervised learning: **unlabbeled** data for pattern/structure recognition
+        - clustering
+        - association
+        - dimensionality reduction (neural networks)
+    - get similar things to cluster together and dissimilar things to cluster apart
+    - Classification and Regression
+        - overfitting issue: may only be accurate for training data
+        - we want to generalize to new situations
+        - regression: find "line of best fit" 
+    - Model Complexity (ordered from least complex to most complex)
+        - Linear and multilinear
+        - Polynomial
+        - Decision trees, Ensembles (Random Forest, Gradient Boosting)
+        - Support Vector Machines
+        - Neural Networks
+    - always start with the simplest method/model 
+        - only work your way up from there if more complexity is needed
+        - check for overfitting when you go up in complexity
+    - separate out a chunk of data (maybe randomly) as "validation data" and don't include it in training data
+    - when training accuracy = validation accuracy and both are as high as possible, you're done
+    - things to check before modeling:
+        - normalization
+            - all variables should be on the same scale (use StandardScaler)
+            - test set should be on the same scale as training set (find scale based on training set)
+        - robustness
+            - outliers in Y direction have large residuals (error)
+            - outliers in X direction are usually influential for least-squares regression line
+    - bias
+        - selection
+        - annotation (what the label is)
+        - acquisition (how you got the data)
+        - representation (demographics, context)
+    - correlation coefficient (r)
+        - between -1 and 1
+        - 0: no correlation
+    - Linear Regression: 
+        - "least squares" finds the line that minimizes the sum of the squared residuals
+    - Extrapolation: data that goes outside the range of the original data
+    - Assumptions of linear regression: LINE
+        - Linearity
+        - Independent observations
+        - Normally distributed errors
+        - Equal variance of all X's

@@ -1,0 +1,183 @@
+---
+title: "CS 501 HW 6"
+date: last-modified
+author: "Hayden Coke and Carolina Pinillos"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+# Modeling Practice
+
+This week you will do some simple linear modeling on the Massachusetts Schools dataset. This dataset contains average SAT scores for each high school in Massachusetts, along with information about the percentage of economically disadvantaged students and the size of the school.
+
+First, plot the data! Always plot the data before doing a regression. What do you see?
+
+### Computing the Regression
+
+Next, use the `LinearRegression` function from the in class exercise to do a linear regression for each variable individually (% disadvantaged and size) to predict the average SAT score. Note that to pass in a vector for x you need to reshape it to (-1, 1) as we did for the in-class exercise. Also you will need to convert the `size` variable to numeric values that are ordered (small=0, large=2). There are several ways to do this conversion! Can you name at least two methods?
+
+For each model, be sure to output the following information:
+
+* The slope (`coef_`) and intercept (`intercept_`) obtained using the result you got from `model.fit()`
+* The adjusted R^2 score, which can be obtained using the the `model.score()` function
+* An estimate of the predicted variable (y-hat) that can be used to compute the residuals (by taking the difference from y) - this can be obtained using the `model.predict()` function
+* A plot of the data along with the linear fit using the seaborn `lmplot` function
+
+### Checking Model Fit
+
+Once you have fit your model, do some checks to make sure that a linear model is appropriate. 
+
+1. First examine the residuals you get from each of these models using the `PredictionErrorDisplay` function in scikit learn. 
+    
+    * Do they meet the criteria for linearity and uniformity that we discussed in class?
+
+2. Next, check whether your residuals are normally distributed using the `probplot` imported above. Probplot takes in the residuals and compares them to a standard distribution (in this case, you want `norm` for the normal distribution). You can pass in `plt` for the plot argument, and then call `plt.show()` to view the plot. 
+
+    * Do all the residuals fall along a line in the Q-Q plot? Then they are normally distributed! Great!
+
+3. Finally, use the `variance_inflation_factor` function imported above to check if the two variables are collinear. Note this just takes in the two columns of the dataframe, `perc_disadvan` and `sizenumeric`, and you can pass in either 0 or 1 for the exogenous index since there are only two variables so it doesn't matter which one you choose. 
+    
+    * Is the resulting value less than 5? Then your variables are not collinear. Great!
+
+### Computing Multi Linear Regression
+
+Lastly, repeat the same steps you followed in the simple linear regression section above, but this time use both variables together! In this case the `x` input to the linear model is going to be two columns of the dataframe, `perc_disadvan` and `sizenumeric`. Similarly, in the lmplot function you will want to choose one of the variables to be encoded as `hue`.
+
+### The Outlier
+
+In all the plots up until this point there has been one noticeable outlier... Filter the data to find out which school is the outlier. Is this outlier influential for our models or not? Explain your reasoning.
+
+### Extra Credit
+
+For the extra credit, I would like you to do the same multi linear regression analysis as above, but on a much more complicated dataset! Load in the `diamonds.csv` file we used in a previous assignment and compute a multi linear model to predict the price of each diamond. Then do each of the model fit checks above to verify your model is sound.
+
+**Hint:** You might need to transform some of the variables in the diamonds dataset first (e.g. use the log of a variable) in order to achieve linearity.
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import PredictionErrorDisplay
+from scipy.stats import probplot
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+```
+
+```{python}
+df = pd.read_csv('./../../datasets/MA_schools.csv')
+print(df.head())
+```
+
+```{python}
+# Plot the data
+sns.scatterplot(df, x='perc_disadvan', y='average_sat_math', hue='size')
+plt.show()
+```
+
+Based on the shape of the graph, there appears to be a negative correlation between percent disadvantaged and average SAT math scores. It looks like there's an outlier in the top left that had a very high average SAT score, low percent of disadvantaged students, and small school size.
+
+### Computing the Regression
+
+```{python}
+# Linear fit for the numeric variable (percent disadvantaged)
+pd_reshape = df['perc_disadvan'].values.reshape((-1, 1))
+model_pd = LinearRegression().fit(pd_reshape, df['average_sat_math'])
+
+print("linear regression of percent disadvantaged vs SAT math score")
+print("adjusted R^2 score:", model_pd.score(pd_reshape, df['average_sat_math']))
+print("slope (coef):", model_pd.coef_)
+print("intercept:", model_pd.intercept_)
+
+# Plot the residuals
+
+
+# Plot the linear fit
+sns.lmplot(data=df, x="perc_disadvan", y="average_sat_math")
+plt.show()
+
+```
+
+```{python}
+# Linear fit for the categorical variable (size)
+df['size_num'] = df['size'].apply(
+    lambda x: 0 if x == 'small' else (1 if x == 'medium' else 2)
+)
+size_num_reshape = df['size_num'].values.reshape((-1, 1))
+model_size = LinearRegression().fit(size_num_reshape, df['average_sat_math'])
+
+print("linear regression of school size vs SAT math score")
+print("adjusted R^2 score:", model_size.score(pd_reshape, df['average_sat_math']))
+print("slope (coef):", model_size.coef_)
+print("intercept:", model_size.intercept_)
+
+# Plot the residuals
+
+# Plot the linear fit
+sns.lmplot(data=df, x="size_num", y="average_sat_math")
+plt.show()
+
+```
+
+### Checking Model Fit
+
+Once you have fit your model, do some checks to make sure that a linear model is appropriate. 
+
+1. First examine the residuals you get from each of these models using the `PredictionErrorDisplay` function in scikit learn. 
+    
+    * Do they meet the criteria for linearity and uniformity that we discussed in class?
+
+2. Next, check whether your residuals are normally distributed using the `probplot` imported above. Probplot takes in the residuals and compares them to a standard distribution (in this case, you want `norm` for the normal distribution). You can pass in `plt` for the plot argument, and then call `plt.show()` to view the plot. 
+
+    * Do all the residuals fall along a line in the Q-Q plot? Then they are normally distributed! Great!
+
+3. Finally, use the `variance_inflation_factor` function imported above to check if the two variables are collinear. Note this just takes in the two columns of the dataframe, `perc_disadvan` and `sizenumeric`, and you can pass in either 0 or 1 for the exogenous index since there are only two variables so it doesn't matter which one you choose. 
+    
+    * Is the resulting value less than 5? Then your variables are not collinear. Great!
+
+```{python}
+# Check if residuals are normally distributed
+
+```
+
+```{python}
+# Check for variance inflation factor
+
+```
+
+### Computing Multi Linear Regression
+
+```{python}
+# Do multiple linear regression
+
+```
+
+### The Outlier
+
+In all the plots up until this point there has been one noticeable outlier... Filter the data to find out which school is the outlier. Is this outlier influential for our models or not? Explain your reasoning.
+
+```{python}
+# Filter to find the outlier
+df[(df['size'] == 'small') & (df['average_sat_math'] > 700)]
+```
+
+The outlier is Massachusetts Academy for Math and Science School, at row 167 of the data.
+
+Re-running the models without the outlier:
+
+```{python}
+# new dataframe without the outlier:
+df_2 = df[df['school_name'] != "Ma Academy for Math and Science School"]
+
+sns.lmplot(data=df_2, x="perc_disadvan", y="average_sat_math")
+plt.show()
+
+sns.lmplot(data=df_2, x="size_num", y="average_sat_math")
+plt.show()
+
+```
+
+### Extra Credit

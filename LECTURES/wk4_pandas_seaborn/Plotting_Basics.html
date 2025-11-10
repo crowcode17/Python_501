@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.24">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Hayden Coke and Hodan Aden">
+<meta name="dcterms.date" content="2025-09-17">
+
+<title>DataFrame and Plotting Basics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Plotting_Basics_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/popper.min.js"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Plotting_Basics_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Plotting_Basics_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Plotting_Basics_files/libs/quarto-html/quarto-syntax-highlighting-dc55a5b9e770e841cd82e46aadbfb9b0.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Plotting_Basics_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Plotting_Basics_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Plotting_Basics_files/libs/bootstrap/bootstrap-e212e262c515a94b681f1f2fc707c22c.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">DataFrame and Plotting Basics</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Hayden Coke and Hodan Aden </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">September 17, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<style>
+.cell-output {
+  background-color: lavender;
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+<div id="ce6fef9c" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="pandas-dataframes" class="level1">
+<h1>Pandas DataFrames</h1>
+<p>To make plotting easier, we’re going to use a pandas dataframe and kinda pretend they’re numpy arrays.</p>
+<p>Unlink numpy ndarrays, pandas dataframes can contain multiple data types, as long as each <strong>column</strong> is a single dtype.</p>
+<p>Also unlike numpy ndarrays, pandas dataframes have <strong>column names</strong> and an <strong>index</strong> that is used to reference each row.</p>
+<p>First, let’s create some simple dataframes using two different methods.</p>
+<div id="c6950c0c" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>arr <span class="op">=</span> np.arange(<span class="dv">20</span>).reshape(<span class="dv">5</span>,<span class="dv">4</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(arr,columns<span class="op">=</span>[<span class="st">'Var0'</span>,<span class="st">'Var1'</span>,<span class="st">'Var2'</span>,<span class="st">'Var3'</span>])</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Dataframe from numpy array:'</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># using variables with different types</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>var0 <span class="op">=</span> np.arange(<span class="dv">5</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>var1 <span class="op">=</span> <span class="fl">1.</span> <span class="op">*</span> np.arange(<span class="dv">3</span>,<span class="dv">8</span>)  <span class="co"># using 1. as a quick way to cast to float</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>var2 <span class="op">=</span> [<span class="st">'One'</span>, <span class="st">'Two'</span>, <span class="st">'Three'</span>, <span class="st">'Four'</span>, <span class="st">'Five'</span>]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>var3 <span class="op">=</span> [<span class="va">True</span>, <span class="va">False</span>, <span class="va">False</span>, <span class="va">True</span>, <span class="va">True</span>]</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'Var0'</span>:var0, <span class="st">'Var1'</span>:var1, <span class="st">'Var2'</span>:var2, <span class="st">'Var3'</span>:var3})</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\n</span><span class="st">data frame from a set of variables:"</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Dataframe from numpy array:
+   Var0  Var1  Var2  Var3
+0     0     1     2     3
+1     4     5     6     7
+2     8     9    10    11
+3    12    13    14    15
+4    16    17    18    19
+
+
+data frame from a set of variables:
+   Var0  Var1   Var2   Var3
+0     0   3.0    One   True
+1     1   4.0    Two  False
+2     2   5.0  Three  False
+3     3   6.0   Four   True
+4     4   7.0   Five   True</code></pre>
+</div>
+</div>
+<p>Now let’s load a CSV file into a pandas dataframe and examine its conents.</p>
+<div id="c023513f" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load csv from path</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">'./../../datasets/movie_profits.csv'</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"movie profits preview:"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.head())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>movie profits preview:
+   Year              Movie  US Gross ($M)  Budget ($M)  Run Time (min)  \
+0  2012   Django Unchained     162.805434        100.0             165   
+1  2012  Parental Guidance      77.264926         25.0             105   
+2  2012     The Impossible      19.019882         40.0             114   
+3  2012       Jack Reacher      80.070736         60.0             130   
+4  2012         This is 40      67.544505         35.0             134   
+
+   Critic Score (Rotten Tomatoes)  
+0                              88  
+1                              18  
+2                              81  
+3                              61  
+4                              51  </code></pre>
+</div>
+</div>
+<p>On the left side is the index (by default it’s an array starting with zero) and on the top row are the column names.</p>
+<section id="slicing-dataframes" class="level2">
+<h2 class="anchored" data-anchor-id="slicing-dataframes">Slicing DataFrames</h2>
+<p>Let’s slice this data… We can do this slicing in three different ways in pandas!</p>
+<section id="slicing-by-position-.iloc" class="level3">
+<h3 class="anchored" data-anchor-id="slicing-by-position-.iloc">Slicing by Position (<code>.iloc</code>)</h3>
+<div id="df18e20e" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"first 3 rows, all columns"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.iloc[:<span class="dv">3</span>], <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"first 3 rows, first 2 columns"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.iloc[:<span class="dv">3</span>, :<span class="dv">2</span>], <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"first 3 rows in REVERSE order, first 2 columns"</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df.iloc[:<span class="dv">3</span>, :<span class="dv">2</span>][::<span class="op">-</span><span class="dv">1</span>], <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>first 3 rows, all columns
+   Year              Movie  US Gross ($M)  Budget ($M)  Run Time (min)  \
+0  2012   Django Unchained     162.805434        100.0             165   
+1  2012  Parental Guidance      77.264926         25.0             105   
+2  2012     The Impossible      19.019882         40.0             114   
+
+   Critic Score (Rotten Tomatoes)  
+0                              88  
+1                              18  
+2                              81   
+
+first 3 rows, first 2 columns
+   Year              Movie
+0  2012   Django Unchained
+1  2012  Parental Guidance
+2  2012     The Impossible 
+
+first 3 rows in REVERSE order, first 2 columns
+   Year              Movie
+2  2012     The Impossible
+1  2012  Parental Guidance
+0  2012   Django Unchained 
+</code></pre>
+</div>
+</div>
+</section>
+<section id="slicing-by-label-.loc" class="level3">
+<h3 class="anchored" data-anchor-id="slicing-by-label-.loc">Slicing by Label (<code>.loc</code>)</h3>
+<div id="ed6d7b14" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using column names to index</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"entire 'Year' column"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'Year'</span>], <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"first 3 rows of 'Year'"</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'Year'</span>].loc[<span class="dv">0</span>:<span class="dv">3</span>])</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="co"># print(df['Year'][0:3]) # this is the same as above but DOES NOT include 3</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>entire 'Year' column
+0      2012
+1      2012
+2      2012
+3      2012
+4      2012
+       ... 
+604    2008
+605    2008
+606    2008
+607    2008
+608    2008
+Name: Year, Length: 609, dtype: int64 
+
+first 3 rows of 'Year'
+0    2012
+1    2012
+2    2012
+3    2012
+Name: Year, dtype: int64</code></pre>
+</div>
+</div>
+<p>Note that when using <code>.loc</code> you are referencing the index value itself, NOT the position. It is therefore <em>inclusive</em> of both the beginning and end values you use.</p>
+<div id="2a7aecbf" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># iloc vs loc</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># example df using a subset of the other df</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>exdf <span class="op">=</span> df.iloc[:<span class="dv">3</span>, :<span class="dv">2</span>][::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exdf, <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"using .iloc for indexing:"</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exdf.iloc[<span class="dv">0</span>:<span class="dv">2</span>],<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"using .loc for indexing:"</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exdf.loc[<span class="dv">0</span>:<span class="dv">2</span>],<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># this is EMPTY because the indexes were reversed</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># but we can go backwards</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"[2:0]..."</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(exdf.loc[<span class="dv">2</span>:<span class="dv">0</span>],<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Year              Movie
+2  2012     The Impossible
+1  2012  Parental Guidance
+0  2012   Django Unchained 
+
+using .iloc for indexing:
+   Year              Movie
+2  2012     The Impossible
+1  2012  Parental Guidance 
+
+using .loc for indexing:
+Empty DataFrame
+Columns: [Year, Movie]
+Index: [] 
+
+[2:0]...
+   Year              Movie
+2  2012     The Impossible
+1  2012  Parental Guidance
+0  2012   Django Unchained 
+</code></pre>
+</div>
+</div>
+</section>
+<section id="slicing-by-value" class="level3">
+<h3 class="anchored" data-anchor-id="slicing-by-value">Slicing by Value</h3>
+<p>We can also use boolean masks to slice by value, just as we did with numpy arrays.</p>
+<div id="93550ed4" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># boolean indexing</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># movies with runtime greater than 90 minutes</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>mask <span class="op">=</span> df[<span class="st">'Run Time (min)'</span>] <span class="op">&gt;</span> <span class="dv">90</span> </span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>longMovies <span class="op">=</span> df[mask]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># usually masking and indexing is combined:</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>longMovies2 <span class="op">=</span> df[df[<span class="st">'Run Time (min)'</span>] <span class="op">&gt;</span> <span class="dv">90</span>]</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(longMovies2.head())</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co"># this is a new dataframe so it has its own indexes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Year              Movie  US Gross ($M)  Budget ($M)  Run Time (min)  \
+0  2012   Django Unchained     162.805434        100.0             165   
+1  2012  Parental Guidance      77.264926         25.0             105   
+2  2012     The Impossible      19.019882         40.0             114   
+3  2012       Jack Reacher      80.070736         60.0             130   
+4  2012         This is 40      67.544505         35.0             134   
+
+   Critic Score (Rotten Tomatoes)  
+0                              88  
+1                              18  
+2                              81  
+3                              61  
+4                              51  </code></pre>
+</div>
+</div>
+<p>For more on indexing in pandas, you can also reference <a href="https://pandas.pydata.org/docs/user_guide/indexing.html">this guide</a>.</p>
+</section>
+</section>
+<section id="descriptive-statistics-with-dataframes" class="level2">
+<h2 class="anchored" data-anchor-id="descriptive-statistics-with-dataframes">Descriptive Statistics with DataFrames</h2>
+<p>Similar to numpy arrays, you can apply statistical functions like <code>min()</code>, <code>max()</code>, and <code>mean()</code> to the numeric columns of pandas dataframes.</p>
+<div id="6c8a60fd" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># applying functions to dataframes</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># similar to applying functions to numpy arrays</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co"># min</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Shortest runtime (minutes):"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'Run Time (min)'</span>].<span class="bu">min</span>(),<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># mean</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Average score:"</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'Critic Score (Rotten Tomatoes)'</span>].mean(),<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co"># max</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Largest budget (millions):"</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'Budget ($M)'</span>].<span class="bu">max</span>(),<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Shortest runtime (minutes):
+63 
+
+Average score:
+47.19211822660098 
+
+Largest budget (millions):
+250.0 
+</code></pre>
+</div>
+</div>
+<p>You can also use the <code>describe()</code> function to get a summary of your dataframe.</p>
+<div id="07454b8f" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># describe dataframe</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> df.describe()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(summary)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              Year  US Gross ($M)  Budget ($M)  Run Time (min)  \
+count   609.000000     609.000000   609.000000      609.000000   
+mean   2009.967159      75.819769    58.195731      106.885057   
+std       1.408003      82.643347    52.171647       16.726906   
+min    2008.000000       2.778752     1.000000       63.000000   
+25%    2009.000000      25.534493    22.000000       95.000000   
+50%    2010.000000      48.237389    40.000000      105.000000   
+75%    2011.000000      94.835059    79.000000      114.000000   
+max    2012.000000     760.507625   250.000000      196.000000   
+
+       Critic Score (Rotten Tomatoes)  
+count                      609.000000  
+mean                        47.192118  
+std                         25.781232  
+min                          0.000000  
+25%                         25.000000  
+50%                         45.000000  
+75%                         68.000000  
+max                         99.000000  </code></pre>
+</div>
+</div>
+<p>Note that calling <code>describe()</code> returns a new dataframe. The index on the left side is no longer numeric!</p>
+<div id="aff64aaa" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># summary is also a dataframe</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(summary.loc[<span class="st">'mean'</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Year                              2009.967159
+US Gross ($M)                       75.819769
+Budget ($M)                         58.195731
+Run Time (min)                     106.885057
+Critic Score (Rotten Tomatoes)      47.192118
+Name: mean, dtype: float64</code></pre>
+</div>
+</div>
+<p>Ok! Now that we’ve got a dataframe and we can slice into it and summarize it, let’s do some plotting!</p>
+</section>
+</section>
+<section id="plotting-data" class="level1">
+<h1>Plotting Data</h1>
+<section id="matplotlib-plotting" class="level2">
+<h2 class="anchored" data-anchor-id="matplotlib-plotting">Matplotlib Plotting</h2>
+<p>The matplotlib library is the engine under the hood of the seaborn library. Mostly we will use seaborn, but we should first learn a little bit about the underlying system.</p>
+<p>Here is a simple scatter plot:</p>
+<div id="6ab92c65" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotting from dataframe</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> df[<span class="st">'Budget ($M)'</span>]</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">'Run Time (min)'</span>]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># create and label plot</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>plt.scatter(x,y)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Budget ($M)'</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Run Time (min)'</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co"># output the plot IMAGE (not the object)</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-12-output-1.png" width="593" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>If we want to create two plots side by side, we would create a figure with subplots.</p>
+<div id="526a1ef1" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compare two plots</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> df[<span class="st">'Critic Score (Rotten Tomatoes)'</span>]</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create a figure </span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">1</span>) <span class="co"># rows, cols</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># populate first axis</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].scatter(x, y)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co"># different labeling functions from above because this is axis-specific</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_xlabel(<span class="st">'Budget ($M)'</span>) </span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_ylabel(<span class="st">'Run Time (min)'</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co"># second axis</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].scatter(x, y)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_xlabel(<span class="st">'Budget ($M)'</span>) </span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].set_ylabel(<span class="st">'Critic Score'</span>)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-13-output-1.png" width="593" height="431" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>There is a lot more to matplotlib figures than we can cover here, but for a useful reference guide you can refer to the diagram below.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://matplotlib.org/stable/_images/anatomy.png" class="img-fluid figure-img"></p>
+<figcaption>Parts of a matplotlib Figure</figcaption>
+</figure>
+</div>
+</section>
+<section id="seaborn-plotting" class="level2">
+<h2 class="anchored" data-anchor-id="seaborn-plotting">Seaborn Plotting</h2>
+<p>Now let’s create the same plots again but using seaborn. Because we are using dataframes, we just pass in the data and the column names for the variables we want and seaborn does the rest!</p>
+<p>Here is a single plot.</p>
+<div id="4ac96c42" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create single sb plot</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> sns.scatterplot(df, x<span class="op">=</span><span class="st">'Budget ($M)'</span>, y<span class="op">=</span><span class="st">'Run Time (min)'</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-14-output-1.png" width="593" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>And here we have a double plot with a shared x-axis. Much less code, much nicer figures!</p>
+<div id="5a7c5860" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> sns.PairGrid(df, </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    y_vars<span class="op">=</span>[<span class="st">'Run Time (min)'</span>, <span class="st">'Critic Score (Rotten Tomatoes)'</span>],</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    x_vars<span class="op">=</span>[<span class="st">'Budget ($M)'</span>],</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    aspect <span class="op">=</span> <span class="dv">3</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>g.<span class="bu">map</span>(sns.scatterplot)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-15-output-1.png" width="705" height="473" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Notice we have an outlier in our run time. Let’s use indexing to find out the name of that movie!</p>
+<div id="f0fdf95b" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2 ways</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[df[<span class="st">'Run Time (min)'</span>] <span class="op">&gt;</span> <span class="dv">175</span>]) <span class="co"># guessing</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[df[<span class="st">'Run Time (min)'</span>] <span class="op">==</span> df[<span class="st">'Run Time (min)'</span>].<span class="bu">max</span>()]) <span class="co"># get highest</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    Year                        Movie  US Gross ($M)  Budget ($M)  \
+15  2012  The Man with the Iron Fists       15.63409         15.0   
+
+    Run Time (min)  Critic Score (Rotten Tomatoes)  
+15             196                              49  
+
+
+    Year                        Movie  US Gross ($M)  Budget ($M)  \
+15  2012  The Man with the Iron Fists       15.63409         15.0   
+
+    Run Time (min)  Critic Score (Rotten Tomatoes)  
+15             196                              49  </code></pre>
+</div>
+</div>
+</section>
+<section id="example-plots" class="level2">
+<h2 class="anchored" data-anchor-id="example-plots">Example Plots</h2>
+<p>Let’s do a few example plots of different kinds.</p>
+<div id="50e9b035" class="cell" data-execution_count="16">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get a slice of data</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>exdata <span class="op">=</span> df[[<span class="st">'US Gross ($M)'</span>, <span class="st">'Budget ($M)'</span>]]</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># make histogram</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>g1 <span class="op">=</span> sns.histplot(exdata)</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a><span class="co"># kernel density plot</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a><span class="co"># normal proportions</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>g2 <span class="op">=</span> sns.kdeplot(exdata, fill<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="co"># line plot</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>g3 <span class="op">=</span> sns.lineplot(df, x<span class="op">=</span><span class="st">'Year'</span>, y<span class="op">=</span><span class="st">'Budget ($M)'</span>)</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>g3.<span class="bu">set</span>(xticks<span class="op">=</span><span class="bu">range</span>(df[<span class="st">'Year'</span>].<span class="bu">min</span>(), df[<span class="st">'Year'</span>].<span class="bu">max</span>()<span class="op">+</span><span class="dv">1</span>))</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="co"># paired line plot</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>g4 <span class="op">=</span> sns.PairGrid(df, </span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>    y_vars<span class="op">=</span>[<span class="st">'Budget ($M)'</span>, <span class="st">'US Gross ($M)'</span>], </span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    x_vars<span class="op">=</span>[<span class="st">'Year'</span>], </span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    aspect <span class="op">=</span> <span class="dv">3</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>g4.<span class="bu">map</span>(sns.lineplot)</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a><span class="co"># g4.set(xticks=range(df['Year'].min(), df[]))</span></span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-17-output-1.png" width="593" height="411" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-17-output-2.png" width="606" height="411" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-17-output-3.png" width="585" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-17-output-4.png" width="705" height="471" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Another important type of plot is the pairplot, which shows relationships between all pairs of variables in a dataset. This is particularly useful during EDA!</p>
+<div id="8c3afec4" class="cell" data-execution_count="17">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pairplot</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> sns.pairplot(df, diag_kind<span class="op">=</span><span class="st">"kde"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-18-output-1.png" width="1181" height="1182" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="practice-choosing-plot-types" class="level1">
+<h1>Practice Choosing Plot Types</h1>
+<p>For each of the following, (1) choose the appropriate type of plot from the list and (2) provide a short justification for your choice. Please format your answer with line breaks so it’s easier to read!</p>
+<p>Plot Choices:</p>
+<ul>
+<li>Line graph
+<ul>
+<li>shows trends of one variable dependant on another (usually time)</li>
+</ul></li>
+<li>Scatter plot
+<ul>
+<li>always continuous/continous</li>
+</ul></li>
+<li>Density plot
+<ul>
+<li>same as histogram but PROPORTION (each observation/total observations)</li>
+</ul></li>
+<li>Boxplot
+<ul>
+<li>good for looking at outliers, medians, quartiles</li>
+</ul></li>
+<li>Bar graph
+<ul>
+<li>x is categorical “bins”</li>
+</ul></li>
+<li>Histogram
+<ul>
+<li>x is usually continous numeric, “bins”</li>
+</ul></li>
+<li>Violin plot
+<ul>
+<li>like a box plot, but shows proportions</li>
+</ul></li>
+<li>Heatmap
+<ul>
+<li>values depending on space</li>
+</ul></li>
+</ul>
+<ol type="1">
+<li>How many birds of each species visited your bird feeder today</li>
+</ol>
+<ul>
+<li>bar graph</li>
+<li>use species as different categories so amount of birds is on the Y axis and species are on the X axis</li>
+</ul>
+<ol start="2" type="1">
+<li>How many total birds were visiting the feeder every 15 minutes (collected over 2 hours)</li>
+</ol>
+<ul>
+<li>line graph</li>
+<li>counting the amount of birds (discrete) at regular intervals, trending by time</li>
+</ul>
+<ol start="3" type="1">
+<li>The number of seeds each bird ate relative to its size in cm</li>
+</ol>
+<ul>
+<li>histogram</li>
+<li>size of birds (cm) is continuous (bins), number of seeds eaten is discrete.</li>
+</ul>
+<ol start="4" type="1">
+<li>A summary of the size distribution of all the birds</li>
+</ol>
+<ul>
+<li>histogram or boxplot</li>
+<li>boxplot if the size data has outliers, histogram otherwise.</li>
+</ul>
+<ol start="5" type="1">
+<li>The weight of each bird in grams relative to its size in cm</li>
+</ol>
+<ul>
+<li>scatter plot</li>
+<li>both weight and size are continuous</li>
+</ul>
+<ol start="6" type="1">
+<li>The likelihood of a bird taking a certain number of seeds</li>
+</ol>
+<ul>
+<li>box plot</li>
+<li>likelihood can be looked at by median, outliers, skew, etc</li>
+</ul>
+<ol start="7" type="1">
+<li>The number of birds who took a certain number of seeds during your observation</li>
+</ol>
+<ul>
+<li>violin</li>
+<li>proportion of birds who took certain amount of seeds</li>
+</ul>
+<ol start="8" type="1">
+<li>The geographic distributions of various bird species</li>
+</ol>
+<ul>
+<li>heatmap</li>
+<li>values (species) over space (geographic distribution)</li>
+</ul>
+<ol start="9" type="1">
+<li>The distribution of bird sizes in cm for each species</li>
+</ol>
+<ul>
+<li>bar graph</li>
+<li>species (categories) relative to sizes (continous)</li>
+</ul>
+</section>
+<section id="in-class-coding-exercise" class="level1">
+<h1>In Class Coding Exercise</h1>
+<p>We will use the classic penguins dataset in today’s exercise (available as part of data packages in both R and Python, and on kaggle). You can find information about each of the variables below.</p>
+<ul>
+<li><strong>rowid:</strong> the observation index value</li>
+<li><strong>species:</strong> Species of penguin (Adelie, Chinstrap, or Gentoo)</li>
+<li><strong>island:</strong> Location where the penguin was observed (Torgersen, Biscoe, or Dream)</li>
+<li><strong>bill length:</strong> Length of the penguin’s bill in mm</li>
+<li><strong>bill depth:</strong> Depth of the penguin’s bill in mm</li>
+<li><strong>flipper length:</strong> Length of the penguin’s flipper in mm</li>
+<li><strong>body mass:</strong> Total mass of the penguin in grams</li>
+<li><strong>sex:</strong> Sex of the penguin (Male or Female)</li>
+<li><strong>year:</strong> Year that the observation was recorded</li>
+</ul>
+<section id="instructions" class="level2">
+<h2 class="anchored" data-anchor-id="instructions">Instructions</h2>
+<ol type="1">
+<li><p>Use <code>describe()</code> and <code>sns.pairplot()</code> to examine overall trends in the data.</p></li>
+<li><p>Choose any set of appropriate variables to generate each of the following plots. You can refer to the <a href="https://seaborn.pydata.org/examples/index.html">seaborn gallery</a> for examples.</p></li>
+</ol>
+<ul>
+<li>Scatter plot with a single pair of variables</li>
+<li>Bar plot with two variables</li>
+<li>Facet grid showing multiple levels of a categorical variable on one axis</li>
+</ul>
+<p>(Here is a link to a <a href="https://seaborn.pydata.org/tutorial/axis_grids.html">facet grid tutorial</a>)</p>
+</section>
+<section id="answers" class="level2">
+<h2 class="anchored" data-anchor-id="answers">Answers</h2>
+<p>Your code and answers go here!</p>
+<div id="7c30d48e" class="cell" data-execution_count="18">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># import penguins data</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">'./../../datasets/penguins_complete.csv'</span>)</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print(df)</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> df.describe()</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(summary)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>g1 <span class="op">=</span> sns.pairplot(df, diag_kind<span class="op">=</span><span class="st">"kde"</span>)</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Scatter plot with a single pair of variables</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a><span class="co"># flipper length and body mass</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>g2 <span class="op">=</span> sns.scatterplot(df, x<span class="op">=</span><span class="st">'body_mass_g'</span>, y<span class="op">=</span><span class="st">'flipper_length_mm'</span>)</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="co"># bar plot with two variables</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a><span class="co"># species and flipper length</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>g3 <span class="op">=</span> sns.barplot(df, x<span class="op">=</span><span class="st">'species'</span>, y<span class="op">=</span><span class="st">'flipper_length_mm'</span>)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Facet grid showing multiple levels of a categorical variable on one axis</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a><span class="co"># species and body mass, bill length, bill depth</span></span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a><span class="co"># g4 = </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            rowid  bill_length_mm  bill_depth_mm  flipper_length_mm  \
+count  342.000000      342.000000     342.000000         342.000000   
+mean   172.701754       43.921930      17.151170         200.915205   
+std     99.174948        5.459584       1.974793          14.061714   
+min      1.000000       32.100000      13.100000         172.000000   
+25%     87.250000       39.225000      15.600000         190.000000   
+50%    172.500000       44.450000      17.300000         197.000000   
+75%    257.750000       48.500000      18.700000         213.000000   
+max    344.000000       59.600000      21.500000         231.000000   
+
+       body_mass_g         year  
+count   342.000000   342.000000  
+mean   4201.754386  2008.029240  
+std     801.954536     0.817168  
+min    2700.000000  2007.000000  
+25%    3550.000000  2007.000000  
+50%    4050.000000  2008.000000  
+75%    4750.000000  2009.000000  
+max    6300.000000  2009.000000  </code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-19-output-2.png" width="1417" height="1417" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-19-output-3.png" width="593" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Plotting_Basics_files/figure-html/cell-19-output-4.png" width="593" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

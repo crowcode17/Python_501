@@ -1,0 +1,172 @@
+---
+title: day one
+author: me :)
+theme: solar
+---
+# Types
+
+## strings
+```{python}
+
+a_str = "hello"
+print(a_str)
+print(type(a_str))
+
+# multiply string by integer
+b_str = a_str * 3
+print(b_str)
+
+```
+
+## ints 
+```{python}
+x = 219826319
+
+print(x+2)
+print(x-2)
+print(x*2)
+```
+
+- int to float by dividing
+```{python}
+y = x/2 
+print(y)
+print(type(y))
+```
+
+- integer division
+```{python}
+z = x//2
+print(z)
+print(type(z))
+```
+
+- remainder
+
+```{python}
+7 % 2
+```
+
+- exponents
+
+```{python}
+2 ** 10
+```
+
+## numPy 
+- overflow prevention
+
+```{python}
+import numpy as np
+
+npx = np.int8(20)
+# pyx = 20
+
+print(npx * npx)
+# print(pyx * pyx)
+
+```
+
+## floats
+- float being wrong in python
+
+```{python}
+1.0 == (1.0 + 1.0/100000000000000000000000)
+```
+
+## collections / data structures
+https://pandas.pydata.org/
+
+python:
+- list
+- set 
+- tuple
+- dict
+
+numpy: **array**
+dataframe: **pandas**
+
+```{python}
+lst = [1, "2", True, 7/2, print, 1]
+
+print(lst)
+
+lst[4](lst) # what? don't do this
+```
+
+- modify list 
+
+```{python}
+lst[4] = 4.0
+lst = lst + ["Another"]
+lst.pop(0)
+print(lst)
+```
+
+- sets
+    - order doesn't matter
+    - no indices
+    - no duplicates
+
+```{python}
+st = {1,2,3,3}
+st2 = {3,2,1}
+st == st2
+```
+
+- tuples
+    - like lists but can't be changed
+
+```{python}
+tup = (1,2)
+```
+
+- dicts
+    - {key: value}
+    - "key-value storage"
+
+```{python}
+d = {
+    "whatever" : "ok!",
+    "key" : "value"
+    }
+
+print(d.keys())
+print(d.values())
+
+```
+
+- arrays (numpy)
+    - cannot change length
+    - only one type
+    - supports vector ops
+
+```{python}
+import numpy as np
+
+arr = np.array([1,2,3])
+print(arr)
+
+arr[1] = 4
+print(arr)
+
+# vector ops
+arr = arr + 2
+print(arr)
+```
+
+- dataframes (pandas)
+    - usually come from .csv files
+
+```{python}
+import pandas as pd
+
+df = pd.read_csv("https://gist.githubusercontent.com/GoodmanSciences/c2dd862cd38f21b0ad36b8f96b4bf1ee/raw/1d92663004489a5b6926e944c1b3d9ec5c40900e/Periodic%2520Table%2520of%2520Elements.csv")
+
+print(df)
+df
+```
+
+
+
+

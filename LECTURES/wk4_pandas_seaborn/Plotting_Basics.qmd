@@ -1,0 +1,441 @@
+---
+title: "DataFrame and Plotting Basics"
+date: last-modified
+author: "Hayden Coke and Hodan Aden"
+format: html
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  background-color: lavender;
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+# Pandas DataFrames
+
+To make plotting easier, we're going to use a pandas dataframe and kinda pretend they're numpy arrays.
+
+Unlink numpy ndarrays, pandas dataframes can contain multiple data types, as long as each **column** is a single dtype.
+
+Also unlike numpy ndarrays, pandas dataframes have **column names** and an **index** that is used to reference each row.
+
+First, let's create some simple dataframes using two different methods.
+
+```{python}
+
+arr = np.arange(20).reshape(5,4)
+df = pd.DataFrame(arr,columns=['Var0','Var1','Var2','Var3'])
+
+print('Dataframe from numpy array:')
+print(df)
+
+# using variables with different types
+var0 = np.arange(5)
+var1 = 1. * np.arange(3,8)  # using 1. as a quick way to cast to float
+var2 = ['One', 'Two', 'Three', 'Four', 'Five']
+var3 = [True, False, False, True, True]
+
+df = pd.DataFrame({'Var0':var0, 'Var1':var1, 'Var2':var2, 'Var3':var3})
+
+print("\n\ndata frame from a set of variables:")
+print(df)
+```
+
+Now let's load a CSV file into a pandas dataframe and examine its conents.
+
+```{python}
+# load csv from path
+df = pd.read_csv('./../../datasets/movie_profits.csv')
+
+print("movie profits preview:")
+print(df.head())
+
+```
+
+On the left side is the index (by default it's an array starting with zero) and on the top row are the column names.
+
+## Slicing DataFrames
+
+Let's slice this data... We can do this slicing in three different ways in pandas!
+
+### Slicing by Position (`.iloc`)
+
+```{python}
+print("first 3 rows, all columns")
+print(df.iloc[:3], '\n')
+
+print("first 3 rows, first 2 columns")
+print(df.iloc[:3, :2], '\n')
+
+print("first 3 rows in REVERSE order, first 2 columns")
+print(df.iloc[:3, :2][::-1], '\n')
+
+```
+
+### Slicing by Label (`.loc`)
+
+```{python}
+# using column names to index
+print("entire 'Year' column")
+print(df['Year'], '\n')
+
+print("first 3 rows of 'Year'")
+print(df['Year'].loc[0:3])
+
+print(df['Year'][0:3]) # this is the same as above but DOES NOT include 3
+```
+
+Note that when using `.loc` you are referencing the index value itself, NOT the position. It is therefore *inclusive* of both the beginning and end values you use.
+
+```{python}
+# iloc vs loc
+# example df using a subset of the other df
+exdf = df.iloc[:3, :2][::-1]
+print(exdf, '\n')
+
+print("using .iloc for indexing:")
+print(exdf.iloc[0:2],'\n')
+
+print("using .loc for indexing:")
+print(exdf.loc[0:2],'\n')
+
+# this is EMPTY because the indexes were reversed
+# but we can go backwards
+
+print("[2:0]...")
+print(exdf.loc[2:0],'\n')
+
+```
+
+### Slicing by Value
+
+We can also use boolean masks to slice by value, just as we did with numpy arrays.
+
+```{python}
+# boolean indexing
+
+# movies with runtime greater than 90 minutes
+mask = df['Run Time (min)'] > 90 
+longMovies = df[mask]
+
+# usually masking and indexing is combined:
+longMovies2 = df[df['Run Time (min)'] > 90]
+print(longMovies2.head())
+
+# this is a new dataframe so it has its own indexes
+```
+
+For more on indexing in pandas, you can also reference [this guide](https://pandas.pydata.org/docs/user_guide/indexing.html).
+
+## Descriptive Statistics with DataFrames
+
+Similar to numpy arrays, you can apply statistical functions like `min()`, `max()`, and `mean()` to the numeric columns of pandas dataframes.
+
+```{python}
+# applying functions to dataframes
+# similar to applying functions to numpy arrays
+
+# min
+print("Shortest runtime (minutes):")
+print(df['Run Time (min)'].min(),'\n')
+
+# mean
+print("Average score:")
+print(df['Critic Score (Rotten Tomatoes)'].mean(),'\n')
+
+# max
+print("Largest budget (millions):")
+print(df['Budget ($M)'].max(),'\n')
+
+```
+
+You can also use the `describe()` function to get a summary of your dataframe.
+
+```{python}
+# describe dataframe
+summary = df.describe()
+print(summary)
+```
+
+Note that calling `describe()` returns a new dataframe. The index on the left side is no longer numeric!
+
+```{python}
+# summary is also a dataframe
+print(summary.loc['mean'])
+
+```
+
+Ok! Now that we've got a dataframe and we can slice into it and summarize it, let's do some plotting!
+
+# Plotting Data
+
+## Matplotlib Plotting
+
+The matplotlib library is the engine under the hood of the seaborn library. Mostly we will use seaborn, but we should first learn a little bit about the underlying system.
+
+Here is a simple scatter plot:
+
+```{python}
+# plotting from dataframe
+x = df['Budget ($M)']
+y = df['Run Time (min)']
+
+# create and label plot
+plt.scatter(x,y)
+plt.xlabel('Budget ($M)')
+plt.ylabel('Run Time (min)')
+
+# output the plot IMAGE (not the object)
+plt.show()
+
+```
+
+If we want to create two plots side by side, we would create a figure with subplots.
+
+```{python}
+# compare two plots
+z = df['Critic Score (Rotten Tomatoes)']
+
+# create a figure 
+fig, axs = plt.subplots(2, 1) # rows, cols
+
+# populate first axis
+axs[0].scatter(x, y)
+# different labeling functions from above because this is axis-specific
+axs[0].set_xlabel('Budget ($M)') 
+axs[0].set_ylabel('Run Time (min)')
+
+# second axis
+axs[1].scatter(x, y)
+axs[1].set_xlabel('Budget ($M)') 
+axs[1].set_ylabel('Critic Score')
+
+plt.show()
+
+```
+
+There is a lot more to matplotlib figures than we can cover here, but for a useful reference guide you can refer to the diagram below.
+
+![Parts of a matplotlib Figure](https://matplotlib.org/stable/_images/anatomy.png)
+
+## Seaborn Plotting
+
+Now let's create the same plots again but using seaborn. Because we are using dataframes, we just pass in the data and the column names for the variables we want and seaborn does the rest!
+
+Here is a single plot.
+
+```{python}
+# create single sb plot
+g = sns.scatterplot(df, x='Budget ($M)', y='Run Time (min)')
+
+plt.show()
+
+```
+
+And here we have a double plot with a shared x-axis. Much less code, much nicer figures!
+
+```{python}
+g = sns.PairGrid(df, 
+    y_vars=['Run Time (min)', 'Critic Score (Rotten Tomatoes)'],
+    x_vars=['Budget ($M)'],
+    aspect = 3)
+
+g.map(sns.scatterplot)
+plt.show()
+
+```
+
+Notice we have an outlier in our run time. Let's use indexing to find out the name of that movie!
+
+```{python}
+# 2 ways
+print(df[df['Run Time (min)'] > 175]) # guessing
+
+print('\n')
+
+print(df[df['Run Time (min)'] == df['Run Time (min)'].max()]) # get highest
+
+```
+
+## Example Plots
+
+Let's do a few example plots of different kinds.
+
+```{python}
+# get a slice of data
+exdata = df[['US Gross ($M)', 'Budget ($M)']]
+
+# make histogram
+g1 = sns.histplot(exdata)
+plt.show()
+
+# kernel density plot
+# normal proportions
+g2 = sns.kdeplot(exdata, fill=True)
+plt.show()
+
+# line plot
+g3 = sns.lineplot(df, x='Year', y='Budget ($M)')
+g3.set(xticks=range(df['Year'].min(), df['Year'].max()+1))
+plt.show()
+
+# paired line plot
+g4 = sns.PairGrid(df, 
+    y_vars=['Budget ($M)', 'US Gross ($M)'], 
+    x_vars=['Year'], 
+    aspect = 3)
+g4.map(sns.lineplot)
+# g4.set(xticks=range(df['Year'].min(), df[]))
+
+plt.show()
+
+```
+
+Another important type of plot is the pairplot, which shows relationships between all pairs of variables in a dataset. This is particularly useful during EDA!
+
+```{python}
+# pairplot
+g = sns.pairplot(df, diag_kind="kde")
+plt.show()
+
+```
+
+# Practice Choosing Plot Types
+
+For each of the following, (1) choose the appropriate type of plot from the list and (2) provide a short justification for your choice. Please format your answer with line breaks so it's easier to read!
+
+Plot Choices:
+
+* Line graph
+    * shows trends of one variable dependant on another (usually time)
+* Scatter plot
+    * always continuous/continous
+* Density plot
+    * same as histogram but PROPORTION (each observation/total observations)
+* Boxplot
+    * good for looking at outliers, medians, quartiles 
+* Bar graph
+    * x is categorical "bins"
+* Histogram
+    * x is usually continous numeric, "bins"
+* Violin plot
+    * like a box plot, but shows proportions
+* Heatmap
+    * values depending on space
+
+1. How many birds of each species visited your bird feeder today	
+
+- bar graph 
+- use species as different categories so amount of birds is on the Y axis and species are on the X axis
+
+2. How many total birds were visiting the feeder every 15 minutes (collected over 2 hours)	
+
+- line graph
+- counting the amount of birds (discrete) at regular intervals, trending by time
+
+3. The number of seeds each bird ate relative to its size in cm	
+
+- histogram
+- size of birds (cm) is continuous (bins), number of seeds eaten is discrete.  
+
+4. A summary of the size distribution of all the birds	
+
+- histogram or boxplot
+- boxplot if the size data has outliers, histogram otherwise. 
+
+5. The weight of each bird in grams relative to its size in cm	
+
+- scatter plot
+- both weight and size are continuous 
+
+6. The likelihood of a bird taking a certain number of seeds	
+
+- box plot
+- likelihood can be looked at by median, outliers, skew, etc
+
+7. The number of birds who took a certain number of seeds during your observation	
+
+- violin
+- proportion of birds who took certain amount of seeds
+
+8. The geographic distributions of various bird species
+
+- heatmap 
+- values (species) over space (geographic distribution)
+
+9. The distribution of bird sizes in cm for each species
+
+- bar graph
+- species (categories) relative to sizes (continous)
+
+
+# In Class Coding Exercise
+
+We will use the classic penguins dataset in today's exercise (available as part of data packages in both R and Python, and on kaggle). You can find information about each of the variables below. 
+
+* **rowid:** the observation index value
+* **species:** Species of penguin (Adelie, Chinstrap, or Gentoo)
+* **island:** Location where the penguin was observed (Torgersen, Biscoe, or Dream)
+* **bill length:** Length of the penguin's bill in mm
+* **bill depth:** Depth of the penguin's bill in mm
+* **flipper length:** Length of the penguin's flipper in mm
+* **body mass:** Total mass of the penguin in grams
+* **sex:** Sex of the penguin (Male or Female)
+* **year:** Year that the observation was recorded
+
+## Instructions
+
+1. Use `describe()` and `sns.pairplot()` to examine overall trends in the data.
+
+2. Choose any set of appropriate variables to generate each of the following plots. You can refer to the [seaborn gallery](https://seaborn.pydata.org/examples/index.html) for examples.
+
+* Scatter plot with a single pair of variables
+* Bar plot with two variables
+* Facet grid showing multiple levels of a categorical variable on one axis
+
+(Here is a link to a [facet grid tutorial](https://seaborn.pydata.org/tutorial/axis_grids.html))
+
+## Answers
+
+Your code and answers go here!
+
+```{python}
+# import penguins data
+df = pd.read_csv('./../../datasets/penguins_complete.csv')
+
+# print(df)
+
+summary = df.describe()
+print(summary)
+
+g1 = sns.pairplot(df, diag_kind="kde")
+plt.show()
+
+# Scatter plot with a single pair of variables
+# flipper length and body mass
+g2 = sns.scatterplot(df, x='body_mass_g', y='flipper_length_mm')
+plt.show()
+
+# bar plot with two variables
+# species and flipper length
+g3 = sns.barplot(df, x='species', y='flipper_length_mm')
+plt.show()
+
+# Facet grid showing multiple levels of a categorical variable on one axis
+# species and body mass, bill length, bill depth
+# g4 = 
+
+```

@@ -1,0 +1,514 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# ---
+# title: "Loops, Functions, & Debugging"
+# date: last-modified
+# author: "Professor Rachel Brown"
+# format: 
+#     html:
+#         embed-resources: true
+# jupyter: python3
+# ---
+# 
+# ```{=html}
+# <style>
+# .cell-output {
+#   background-color: lavender;
+#   border: 3px solid darkorchid;
+#   border-radius: 5px;
+#   padding: 5px;
+# }
+# </style>
+# ```
+
+# In[ ]:
+
+
+# Import all our libraries for today
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+# # Defining Scope
+# 
+# Scope is a term used to describe which parts of the code are nested inside of a loop or function. For loops, scope describes which lines of code will be run on each iteration of the loop. For functions, scope also determines what variables are accessible by the function (with the exception of `global` variables). Generally scope is defined using the **white space** or indentation of each line.
+
+# In[ ]:
+
+
+# function scope
+def calc_total(items):
+    total = 0   # inside function scope
+
+    for item in items:
+        price = item['price']   # inside loop scope
+        total += price
+
+    return total
+
+# global scope
+result = calc_total([{'price': 10}, {'price': 20}])
+
+
+# It's important to use **four spaces** for each indent. Mixing tabs and spaces, or using an inconsistent number of spaces can cause serious problems!
+# 
+# # For and While Loops
+# 
+# We've been using these already! A **for loop** iterates over each item in a list, array, tuple, etc. It can also be usefully combined with `zip` and `enumerate`.
+
+# In[ ]:
+
+
+# simple for
+for i in range(5): # iterator: thing we're looping over (in this case range)
+    print(i)
+
+# i is still available in global scope after for loop
+print(i)
+
+# combining 2 arrays with ZIP
+# zip requires arrays of same length and creates a tuple
+arr1 = np.arange(0,12,2)
+arr2 = np.arange(1,12,2)
+arr3 = np.arange(0,6)
+
+# unpack tuple with i,j
+print("\ni, j, k:")
+for i, j, k in zip(arr1, arr2, arr3):
+    print(i, j, k)
+
+# counting an index with ENUMERATE
+list1 = ['a', 'b', 'c', 'd']
+
+# enumerate over list
+# i, ch is also tuple unpacking
+for i, ch in enumerate(list1):
+    print(i, ch)
+
+# unnamed variables
+# _ does not allocate memory and cannot be accessed 
+for i, _ in enumerate(list1):
+    print(i)
+
+# iterating over a DICT
+prices = {'apple': 1.50, 'banana': 0.75, 'orange':1.25}
+
+# .items() contains the key, value pairs as tuples
+for fruit, price in prices.items():
+    print(f'{fruit}:\t${price}')
+
+
+# For loops continue until the provided iterator is empty. On the other hand, a **while loop** continues until a specific condition is met. Both for and while loops can be stopped early by inserting `break` or  `continue`.
+
+# In[ ]:
+
+
+# simple while loop
+i = 0
+while i < 5: # conditional
+    print(i)
+    i += 1 
+
+# break
+while True:
+    print('weeeee!')
+    break
+
+for i in range(100):
+    print(i)
+    if i > 3:
+        break
+
+# continue (skip to next iteration)
+for i in range(10):
+    if i % 2 == 0:
+        continue    # skip even numbers
+    print(i)        # only odd numbers are printed
+
+# elif and if
+for i in range(10):
+    if i == 1:
+        print("A")
+    elif i == 2:
+        print("B")
+    else:
+        print("C")
+
+
+# While loops are often used to read files from a file when you don't know how many lines there will be.
+# 
+# ### List Comprehensions
+# 
+# We've also seen these before, they are a concise way of creating a list from a for-loop. List comprehensions are slightly more efficient than a for-loop because they are able to skip the `list.append(item)` step.
+
+# In[ ]:
+
+
+# list comprehension
+squares = []
+
+# normal loop:
+for x in range(10):
+    squares.append(x**2)
+
+# same thing but more efficient:
+squares = [x**2 for x in range(10)]
+
+print(squares)
+
+# combine list comprehension w/ conditional
+even_squares = [x**2 for x in range(10) if x % 2 == 0]
+
+print(even_squares)
+
+
+# List comprehensions should only be used for simple loops when vectorization isn't possible! For example, when doing complex operations on strings, dictionaries, or tuples. Always check if a vectorized strategy is available.
+
+# In[ ]:
+
+
+# vectorizing complex task
+
+rg = np.random.default_rng(123)
+
+# 20 random numbers between 0 and 150
+df = pd.DataFrame({'value': 150 * rg.random(20)}) 
+
+# single condition with WHERE
+# could be done with for loop, but more efficient this way
+df['category'] = np.where(df['value'] > 100, 'high', 'low')
+
+df
+
+# multiple conditions with SELECT
+conditions = [
+    df['value'] < 50,
+    (df['value'] >= 50) & (df['value'] < 100),
+    df['value'] >= 100
+]
+choices = ['low', 'medium', 'high']
+
+df['category'] = np.select(conditions, choices, default='unknown')
+
+df
+
+
+# # Functions
+# 
+# A simple function only requires one line for the definition (`def`) and one line for the `return` statement. But for complicated functions it's good to include documentation as well.
+
+# In[ ]:
+
+
+# minimal function
+def minimal():
+    # something here
+    return # doesn't even need to return anything
+
+# documented function
+def fun(a, b):
+    """
+    Description here
+    Args:
+        a: description of a
+        b: description of b
+    Returns: 
+        description of what fun returns
+    """
+    # body here
+    result = a + b
+    return result
+
+
+# Ideally functions should have the following characteristics:
+# 
+# 1. Be reusable! -- if you need to run the same few lines of code many times, consider making it a function.
+# 2. Do one thing well -- separate unrelated tasks into multiple functions, don't make a gigantic function that does everything
+# 3. Be testable -- it should be easy to verify correct behavior, even for edge cases
+# 4. Has clear inputs/outputs -- any assumptions should be explicitly checked with asserts
+# 
+# ### Lambda Functions
+# 
+# These are simple anonymous (unnamed) one-line functions. You can think of them as a compressed way of writing a function, somewhat similar to the way for-loops can be compressed into list comprehensions.
+
+# In[ ]:
+
+
+# lambda function - this variable IS a function
+# parameter is x, return is x**2
+square = lambda x: x ** 2
+print(square(2))
+
+# lambda with MAP
+# apply a function to a list
+# map takes a function (like lambda) and applies it to a list/dataframe/whatever
+data = [1,2,3,4,5]
+squared = list(map(lambda x: x**2, data))
+print(squared)
+
+# another example of map (not using lambda)
+square_root = list(map(np.sqrt, data)) # converts to np.floats 
+print(square_root) 
+
+# iterative dictionary lookup
+people = [{'name': 'Alice', 'age': 30},
+            {'name': 'Bob', 'age': 25}]
+
+# sort using a lambda
+sorted_people = sorted(people, key=lambda p: p['age']) # default ascending
+
+print(sorted_people)
+
+
+# ### Map and Apply Functions
+# 
+# Not as efficient as vectorization or list comprehension, but better than `iterrows` or an explicit for-loop.
+
+# In[ ]:
+
+
+# map on a dataframe
+# map takes a series and applies a function to it
+
+df['squared'] = df['value'].map(lambda x: x**2)
+df['squareroot'] = df['value'].map(np.sqrt)
+
+# apply: apply a function along an AXIS
+# on series (element-wise)
+df['processed'] = df['value'].apply(lambda x: x*2 if x > 0 else 0)
+
+# apply to rows (axis = 1)
+def calculate_row_stats(row, colname):
+    return row[colname] + row[colname] * 2 
+
+df['result'] = df.apply(calculate_row_stats, colname='value', axis=1) # rows
+
+df['category'] = 0
+
+# apply to columns (axis = 0)
+df['means'] = df.apply(np.mean, axis=0)
+
+# formatting numbers
+df_formatted = df.map(lambda x: f"{x:.2f}")
+
+df_formatted
+
+
+# # Resources (Time and Memory)
+# 
+# You can load part of a dataset by specifying the rows and columns you want to load.
+# 
+# (This chunk is not being run)
+
+# In[ ]:
+
+
+#| eval: false
+
+# load only first 100 rows of a file
+df = pd.read_csv('large_file.csv', nrows=100)
+
+# load only specific columns 
+df = pd.read_csv('large_file.csv', usecols=['col1', 'col2', 'col3']) # must match column exactly
+
+
+# ### Variable Memory Data Types
+# 
+# You can also save memory by recasting variables to less memory intensive alternatives.
+# 
+# For example there are four types of **signed** integers:
+# 
+# * `int64` (-9,223,372,036,854,775,808 to 9,223,372,036,854,775,807)
+# * `int32` (-2,147,483,648 to 2,147,483,647) (4 bytes)
+# * `int16` (-32,768 to 32,767) (2 bytes)
+# * `int8`  (-128 to 127) (1 byte)
+# 
+# Signed integers can be positive or negative. There are also **unsigned** integers, which can only be positive:
+# 
+# * `uint16` (0 to 65,535)
+# * `uint8`  (0 to 255)
+# 
+# There are also multiple types of floats:
+# 
+# * `float64` (8 bytes, ~16 decimal digits)
+# * `float32` (4 bytes, ~7 decimal digits)
+# * `float16` (2 bytes, ~3 decimal digits)
+# 
+# Strings can also be stored in compressed form! In Pandas there is a data type called 'category' that keeps a lookup table for the strings and stores a integer value for each row which indexes into the lookup table.
+
+# In[ ]:
+
+
+#| eval: false
+
+# stores unique values once, plus integer codes
+# by default strings are type 'object'
+# this behaves similar to factors in R
+df['category'] = df['category'].astype('category')
+
+
+# Booleans also use less memory than integers, but if you need to do math using the booleans then you can at least use `uint8` to save space.
+# 
+# ### Time Efficiency
+# 
+# **Big O Notation** describes how runtime grows with the size of the input.
+# 
+# **O(1):** Dictionary lookup, array indexing - instant
+
+# In[ ]:
+
+
+# constant time
+my_dict = {'a':1, 'b':2, 'c':3}
+value = my_dict['a'] # O(1)
+
+my_array = np.array([1,2,3,4,5])
+element = my_array[2] #O(1)
+
+
+# **O(n):** Single pass through data - linear
+
+# In[ ]:
+
+
+# time grows linearly with size
+data = [1,2,3,4,5]
+
+# O(n) - look at every item
+total = sum(data) 
+max_value = max(data)
+
+if 3 in data: # O(n)
+    print('found') 
+
+
+# **O(n log n):** Sorting, efficient algorithms - reasonable
+
+# In[ ]:
+
+
+data = [3,1,5,2,7,3]
+
+# O(n logn)
+sorted_data = sorted(data) 
+df_sorted = df.sort_values('label') 
+
+
+# **O(n²):** Nested loops - avoid for large data
+
+# In[ ]:
+
+
+list1 = range(100)
+list2 = range(50,150)
+
+matches = []
+
+# total O(n^2)
+for i in list1: # n iterations
+    for j in list2: # n for each i
+        if i == j:
+            matches.append(i)
+
+print(matches)
+
+# better way to do this:
+set1 = set(list1)
+set2 = set(list2)
+matches2 = set1.intersection(set2) # O(n)
+
+print(matches2)
+
+
+# ### Code Profiling
+# 
+# You can check how long your code takes to run with the `time` library!
+
+# In[ ]:
+
+
+import time
+
+start = time.time() # gets current time 
+
+a = 0
+for i in range(0,100): 
+    for j in range(0,100): 
+        a += 1
+
+end = time.time()
+
+print(f'time elapsed: {end-start:.4f} seconds')
+
+
+# # Debugging
+# 
+# Quarto notebooks don't have a natural debugger built in, so there are two simple ways you can debug your code in place.
+# 
+# 1. Print statements (you already know how to use these!)
+# 2. Assert statements
+# 
+# Here are some examples:
+
+# In[ ]:
+
+
+def calculate_growth_rate(old_value, new_value):
+    # Verify inputs are valid
+    assert old_value > 0, f"old_value must be positive, got {old_value}"
+    assert new_value >= 0, f"new_value must be non-negative, got {new_value}"
+
+    growth_rate = (new_value - old_value) / old_value
+
+    # Verify output is within a reasonable range
+    assert -1 <= growth_rate <= 10, f"Growth rate {growth_rate} seems wrong"
+
+    return growth_rate
+
+# DataFrame assertions
+def process_sales_data(df):
+    # Check required columns exist
+    required_cols = ['date', 'product', 'sales', 'price']
+    assert all(col in df.columns for col in required_cols), \
+        f"Missing columns. Required: {required_cols}"
+
+    # Check no missing values in key columns
+    assert df['sales'].notna().all(), "Found null values in sales column"
+
+    # Check data types
+    assert pd.api.types.is_numeric_dtype(df['sales']), \
+        "Sales column must be numeric"
+
+    # Check value ranges
+    assert (df['sales'] >= 0).all(), "Negative sales values found"
+    assert (df['price'] > 0).all(), "Price must be positive"
+
+    return df
+
+
+# If you want to use the debugger in VS Code, you will need to convert your qmd document to a python script, by following these two steps in the Terminal.
+# 
+# ```{bash}
+# #| eval: false
+# 
+# # From Quarto
+# quarto convert document.qmd
+# 
+# # From Jupyter
+# jupyter nbconvert --to python document.ipynb
+# ```
+# 
+# You can then use the VS Code debugging tools:
+# 
+# * Continue
+# * Step over
+# * Step into
+# * Step out
+# * Restart
+# * Stop
+# * Inspect variables
+# 
+# You can find more information on the debugger here: https://code.visualstudio.com/docs/debugtest/debugging.

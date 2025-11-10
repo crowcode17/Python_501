@@ -1,0 +1,147 @@
+---
+title: "Machine Learning"
+date: last-modified
+author: "Hayden Coke and Carolina Pinillos"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{python}
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from scipy.stats import pearsonr
+from sklearn.linear_model import LinearRegression
+```
+
+# Anscombe's Quartet
+
+Anscombe's quartet contains four sub datasets that share some unique characteristics. In the space below, run the code to load and plot the datasets, and then compute the correlation coefficients for each dataset individually.
+
+```{python}
+# Load and plot the quartet
+df = sns.load_dataset("anscombe")
+
+df_1 = df[df['dataset'] == 'I']
+df_2 = df[df['dataset'] == 'II']
+df_3 = df[df['dataset'] == 'III']
+df_4 = df[df['dataset'] == 'IV']
+
+# Plot all four sub datasets
+sns.scatterplot(df, x='x', y='y', hue='dataset')
+plt.title("all datasets")
+plt.show()
+
+sns.scatterplot(df_1, x='x', y='y')
+plt.title("dataset 1")
+plt.show()
+
+sns.scatterplot(df_2, x='x', y='y')
+plt.title("dataset 2")
+plt.show()
+
+sns.scatterplot(df_3, x='x', y='y')
+plt.title("dataset 3")
+plt.show()
+
+sns.scatterplot(df_4, x='x', y='y')
+plt.title("dataset 4")
+plt.show()
+
+```
+
+```{python}
+# Get the data for just one set
+
+
+# Compute the mean and standard deviation of y
+print("dataset 1 mean:", df_1['y'].mean())
+print("dataset 1 standard deviation:", df_1['y'].std())
+
+# Compute and print out the correlation coefficient
+# use the `pearsonr` function imported above
+pearson = pearsonr(df_1['x'], df_1['y'])
+r = pearson[0]
+print("dataset 1 correlation coefficient:", r)
+
+# Repeat for each dataset in the quartet
+
+print("\ndataset 2")
+print("mean:", df_2['y'].mean())
+print("standard deviation:", df_2['y'].std())
+print("correlation coefficient:", pearsonr(df_2['x'], df_2['y'])[0])
+
+print("\ndataset 3")
+print("mean:", df_3['y'].mean())
+print("standard deviation:", df_3['y'].std())
+print("correlation coefficient:", pearsonr(df_3['x'], df_3['y'])[0])
+
+print("\ndataset 4")
+print("mean:", df_4['y'].mean())
+print("standard deviation:", df_4['y'].std())
+print("correlation coefficient:", pearsonr(df_4['x'], df_4['y'])[0])
+
+```
+
+
+```{python}
+# Compute the linear regression using the LinearRegression function imported above
+# You will need to reshape the x data vector using .reshape(-1,1)
+
+print("dataset 1")
+x = df_1['x'].values.reshape((-1, 1))
+y = df_1['y']
+reg = LinearRegression().fit(x, y)
+
+# Print the results
+print("score:", reg.score(x, y))
+print("coef:", reg.coef_)
+print("intercept:", reg.intercept_)
+
+
+print("\ndataset 2")
+x = df_2['x'].values.reshape((-1, 1))
+y = df_2['y']
+reg = LinearRegression().fit(x, y)
+
+# Print the results
+print("score:", reg.score(x, y))
+print("coef:", reg.coef_)
+print("intercept:", reg.intercept_)
+
+
+print("\ndataset 3")
+x = df_3['x'].values.reshape((-1, 1))
+y = df_3['y']
+reg = LinearRegression().fit(x, y)
+
+# Print the results
+print("score:", reg.score(x, y))
+print("coef:", reg.coef_)
+print("intercept:", reg.intercept_)
+
+
+print("\ndataset 4")
+x = df_4['x'].values.reshape((-1, 1))
+y = df_4['y']
+reg = LinearRegression().fit(x, y)
+
+# Print the results
+print("score:", reg.score(x, y))
+print("coef:", reg.coef_)
+print("intercept:", reg.intercept_)
+```
+
+
+```{python}
+# Use seaborn's lmplot function to show the results of a linear regression within each dataset
+sns.lmplot(data=df, x="x", y="y", col="dataset")
+plt.show()
+
+sns.lmplot(data=df, x="x", y="y", hue="dataset")
+plt.show()
+```

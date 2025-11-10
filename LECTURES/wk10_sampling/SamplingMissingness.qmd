@@ -1,0 +1,359 @@
+---
+title: "Sampling and Missingness"
+date: last-modified
+author: "Hayden Coke and Connor Farrand"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+# Concept Questions
+
+### Sampling Bias
+
+Types of bias:
+
+1. **Undercoverage bias / coverage error**
+    - some groups are left out of the population
+    - *convenience sampling*
+2. **Nonresponse bias / nonresponse error**
+    - lack of response due to refusal or inability to respond
+    - *voluntary response* is non-random: only people who choose to answer a survey are included
+3. **Response bias / measurement error**
+    - individual answers but gives the wrong answer
+    - *wording of the question*: can cause inaccurate responses if the question is misleading or leading towards a particular answer
+
+Types of missingness:
+
+1. Missing Completely At Random (MCAR)
+    - The probability of missing is the same for all units
+    - no specific pattern
+    - what to do: throw out observations with missing data
+2. Missing At Random (MAR)
+    - The probability of missing might be the same within a subgroup but isn't the same across all subgroups 
+    - there is a pattern to the missingness
+    - ex: survey data
+3. Missing depending on unobserved predictors (MNAR)
+    - May have a latent unobserved variable that informs the missingness 
+    - ex: people with college degrees may be less likely to discuss income on a survey, college degree is predictive of income, and not all subjects report education level
+    - can be due to a variable that was not collected
+4. Missing depending on the value itself (MNAR)
+    - certain values are beyond the capability of whatever we're using to measure
+    - ex: a weather instrument might not report anything if it records a temperature greater than the capabilities of the instrument.
+
+For each scenario below, indicate **which type of sampling bias** could be happening, and then speculate on which slices of the population might be **overrepresented** and which slices of the population might be **missing** from the sample. Refer to the slides for the six different types of bias.
+
+1. Researchers station themselves at a shopping mall entrance on a Tuesday afternoon to survey people about their shopping preferences. 
+
+    * Undercover / Convienience
+    * overrepresented: people who do shopping on a Tuesday who want to answer questions 
+    * missing: people who don't shop on Tuesday and don't want to answer (work on Tuesday, busy shopping / in a rush)
+
+2. A radio station asks listeners to call in with their opinions on a proposed tax increase.
+
+    * Voluntary response 
+    * overrepresented: listeners of the radio station, people who have strong opinions on the tax increase, people with phones
+    * missing: non-listeners, people who don't can't call in because they're listening while commuting or at work
+
+3. An interviewer asks people in person, "How much did you donate to charity last year?"
+
+    * Response / wording of the question
+        * "how much did you donate" is a leading question assuming you donated some amount
+        * people might also lie and overexaggerate the amount
+    * overrepresented: people who have money to donate, people who have the ability to answer interview questions in person
+    * missing: people who can't meet in person, people who didn't donate at all
+
+4. A state health department conducts a phone survey about mental health using only landline numbers from the phone directory.
+
+    * Undercoverage (and Nonresponse if some people didn't answer the phone)
+    * overrepresented: older people (more likely to still have a landline and have time to talk), people who have a landline 
+    * missing: people who don't have a landline, people who have a landline but it's inoperable, people who get the call but don't pick up (might think it's spam)
+
+5. A professor asks their upper-level statistics class about proposed changes to the university's general education requirements.
+
+    * Undercoverage / Convienience sampling
+    * overrepresented: students in the class who are willing to voice their opinion 
+    * missing: students not in the class, students who don't want to respond (some might not have a strong opinion)
+
+6. A company sends out an employee satisfaction survey with a 35% response rate.
+
+    * Response bias and Nonresponse
+    * overrepresented: employees who want to respond, employees who have strong opinions on satisfaction (very satisfied or very unsatisfied)
+    * missing: employees who don't want to respond if the survey isn't mandatory, employees who don't want to share their opinion
+
+7. An elderly care facility emails a satisfaction survey to residents' families.
+
+    * Undercoverage
+    * overrepresented: family members who check their emails, family members who have strong opinions on their relative's care
+    * missing: families/relatives who aren't invested in their elderly relative's care, relatives who don't have emails
+
+8. A polling firm calls potential voters, but only 12% complete the full survey.
+
+    * Nonresponse
+    * overrepresented: voters who answer the phone and have the time to complete a survey, people who have strong opinions (may be effected by whatever the vote is about)
+    * missing: non-voters, voters without a phone, people who don't have time to complete the survey (working, busy)
+
+9. A company analyzes their product reviews to assess quality.
+
+    * Voluntary response and Response bias
+    * overrepresented: consumers with strong opinions about their product (very satisfied or very unsatisfied), consumers who returned product and wrote a review why, bot/AI/fake reviews
+    * missing: consumers who don't have strong opinions on the product or don't want to write a review 
+
+10. A ballot measure asks: "Should the government continue wasting taxpayer money on the inefficient public transit system, or should funds be redirected to road maintenance?"
+
+    * Response / wording of the question
+    * overrepresented: people who don't use public transit / people who drive more than they use transit, people who don't see value in public infrastructure, people who drive in areas with poor road quality
+    * missing: people who don't want to answer misleading questions, people without an opinion
+
+
+### Patterns of Missingness
+
+For each scenario below, indicate which **pattern of missingness** is most likely, and speculate on the potential **cause of missingness**. Refer to the slides for the four different types of missingness.
+
+1. In a financial survey, researchers have comprehensive data on participants' age, education, employment status, and geographic location. Even after accounting for all these factors, income reporting rates vary in ways the observed variables don't explain.
+
+    * Pattern of missingness: Missing depending on unobserved predictors (MNAR)
+    * Potential Cause: some other variable not accounted for?
+
+2. During an online educational survey, approximately 8% of respondents have missing data on various sections. Technical logs show server errors occurred randomly throughout the data collection period affecting different users at different points.
+
+    * Pattern: MCAR
+    * Cause: server errors were random
+    
+3. A mental health survey first asks respondents, "In the past month, have you felt down, depressed, or hopeless?" Only those who answer "yes" are then shown 15 detailed follow-up questions about depression symptoms. These detailed items have missing values for everyone who answered "no" to the initial question.
+
+    * Pattern: Missing depending on the value itself (MNAR)
+    * Cause: those who answered "no" to the first question will not fill in the other items
+
+4. A blood pressure monitoring device malfunctions during a clinical study, failing to record measurements for approximately 5% of patients due to battery issues and sensor defects that occur unpredictably throughout the data collection period.
+
+    * Pattern: MCAR
+    * Cause: the instrument defects are functionally random
+
+5. Patients in a hypertension study are given home monitoring devices and asked to record their blood pressure twice daily. Researchers notice that the pattern of missing entries appears related to the readings that were recorded on adjacent days.
+
+    * Pattern: Missing depending on the value itself (MNAR)
+    * Cause: Patient's hypertension may have been too high to be recorded by the instrument
+
+6. In a workplace survey, the income question has a 40% non-response rate overall. When examining the data, researchers notice that male employees have a 25% non-response rate while female employees have a 55% non-response rate on this question.
+
+    * Pattern: Missing depending on unobserved predictors (MNAR)
+    * Cause: employee gender was not included in the original 
+
+7. In a chronic pain study, patients are asked to complete daily pain diaries. Some patients have excellent completion rates while others frequently miss entries, and this pattern doesn't seem to correlate with any of the demographic or medical history variables collected at baseline.
+
+    * Pattern: Missing depending on unobserved predictors (MNAR)
+    * Cause: patients might be in too much pain to fill out the diary
+
+8. In a longitudinal health study spanning multiple age groups, researchers notice that completion rates for the weight measurement portion decline as participant age increases, with adults over 65 having substantially more missing weight data than younger participants.
+
+    * Pattern: Missing at random
+    * Cause: age
+
+9. In an educational study, students self-report their exam scores. The instructor notices that when they compare self-reported data to actual grade records, certain score ranges have much higher rates of missing self-reports than others.
+
+    * Pattern: Missing depending on the value itself (MNAR)
+    * Cause: exam scores
+
+10. Patients are asked to return for follow-up lab tests three months after their initial visit. The study finds that 75% of insured patients complete the follow-up, while only 30% of uninsured patients return for testing.
+
+    * Pattern: Missing at random
+    * Cause: insurance status
+
+
+# Coding Practice
+
+In this section you will analyze patterns of missingness in a dataset about chocolate bars and their origins! The name of the file is `chocolate.csv`. This dataset contains the following variables:
+
+* company: Name of the company selling the product
+* barName: Name of the product being sold
+* REF: An irrelevant reference value related to data acquisition
+* reviewDate: When the review was conducted
+* cocoaPercent: Percent cocoa of the bar
+* companyLocation: Headquarters of the company
+* rating: Rating measurement obtained during the review
+* beanType: Specific strain of cocoa bean
+* broadBeanOrigin: Country that the beans were sourced from
+
+First make sure the data is tidy! Next, examine the pattern of missingness in the variable `beanType`. What pattern do you see? Third, do a simple EDA on the data following the big picture steps outlined in class. What do you find?
+
+Big Picture Steps:
+
+1. use pairplot to view general correlations
+2. plot variables individually
+    - For time-based variables, plot them over time to look for longitudinal trends
+    - For geographic variables, join with map data to look for trends across space (trajectories or heat maps)
+    - For numeric variables, look for outliers and skewed distributions
+    - For categorical variables, examine differences across categories for sample size and/or missingness
+    - For text-based variables, examine by creating a frequency word cloud and/or doing sentiment analysis
+3. examine distributions - what causes them?
+4. outliers - where did they come from? discard, examine separately, leave in?
+5. explore subgroups and repeat from step 1
+    - create new categorical variables if needed
+    - are the global trends similar across the values of each categorical variable? or are the trends specific to a subgroup?
+6. Possible explanations
+
+Research Questions:
+
+A research question needs to:
+    - Be clear and focused
+    - Address a particular problem
+    - Be empirically answerable with credible sources
+    - Be complex enough to merit a detailed answer (just yes/no probably isn’t enough)
+    - May begin with "how, why, what, and which"
+
+```{python}
+import numpy as np
+import pandas as pd
+
+df = pd.read_csv("./../../datasets/chocolate.csv")
+df.head()
+
+```
+
+### Tidy The Data
+
+```{python}
+# clean up company location
+# there must be a better way to do this...
+df['companyLocation'].mask(df['companyLocation'] == 'Niacragua', 'Nicaragua', inplace=True)
+df['companyLocation'].mask(df['companyLocation'] == 'Eucador', 'Ecuador', inplace=True)
+df['companyLocation'].mask(df['companyLocation'] == 'Domincan Republic', 'Dominican Republic', inplace=True)
+
+locations = df['companyLocation'].unique()
+locations.sort()
+locations
+
+# convert cocoa percent to a float
+df['cocoaPercent'] = (df['cocoaPercent'].str.strip("%")).astype(float)
+
+# remove REF
+df.drop(columns='REF', inplace=True)
+```
+
+### Examine Missingness Patterns
+
+```{python}
+# which columns have missing values?
+beanType_missing = df[df['beanType'].isna()].shape[0]
+
+print("total missing beanType cells:", beanType_missing)
+print("proportion of missing beanType rows:", beanType_missing/df.shape[0])
+
+df['beanTypeMissing'] = df['beanType'].isna()
+```
+
+why are half the bean types missing?
+
+```{python}
+def group_and_sort(df, field):
+    return (df.groupby(field)['beanTypeMissing'].count()).sort_values(ascending=False)
+
+# maybe certain companies omit bean type?
+company_missing = group_and_sort(df, 'company')
+print("top 10 companies with missing bean types:")
+print(company_missing[:10])
+
+# locations?
+location_missing = group_and_sort(df, 'companyLocation')
+print("\n\ntop 10 locations with missing bean types:")
+print(location_missing[:10])
+
+# barName?
+bar_missing = group_and_sort(df, 'barName')
+print("\n\ntop 10 bar names with missing bean types:")
+print(bar_missing[:10])
+
+# # not sure why, but maybe cocoaPercent?
+# cocoa_missing = group_and_sort(df, 'cocoaPercent')
+# print("\n\ntop 5 cocoa percents with missing bean types:")
+# print(cocoa_missing[:5])
+
+# # rating?
+# rating_missing = group_and_sort(df, 'rating')
+# print("\n\nratings with missing bean types:")
+# print(rating_missing)
+
+```
+
+### Do Big-Picture EDA
+
+Big Picture Steps:
+
+1. use pairplot to view general correlations
+2. plot variables individually
+    - For time-based variables, plot them over time to look for longitudinal trends
+    - For numeric variables, look for outliers and skewed distributions
+    - For categorical variables, examine differences across categories for sample size and/or missingness
+
+1. use pairplot to view general correlations
+
+```{python}
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+g = sns.pairplot(df, diag_kind="kde")
+plt.show()
+
+```
+
+2. plot variables individually
+
+### rating vs company
+
+```{python}
+rating_company = df[['rating', 'company']]
+rating_company.sort_values(by='rating', ascending=True, inplace=True)
+
+plt.figure(figsize=(10,50))
+sns.barplot(rating_company, x='rating', y='company')
+plt.show()
+```
+
+### rating vs year
+
+```{python}
+rating_year = (df[['rating', 'reviewDate']]).sort_values(by='reviewDate', ascending=True)
+
+sns.lineplot(rating_year, x='reviewDate', y='rating')
+plt.show()
+
+```
+
+It looks like 2008 had pretty low ratings on average, while 2011 and 2017 had higher average ratings.
+
+### looking for outliers
+
+```{python}
+# any outliers in cocoa percent?
+sns.boxplot(x=df['cocoaPercent'])
+plt.show()
+
+# outliers in rating?
+sns.boxplot(x=df['rating'])
+plt.show()
+```
+
+There are many outliers in cocoa percent with most being between 70 and 75%.
+
+This looks realistic; most chocolate bars sold are between 60 and 80% cocoa. 
+
+Most ratings are between 2 and 4, which makes sense because 3 is "average".
+
+### rating
+
+```{python}
+sns.histplot(df, x='rating')
+plt.show()
+```
+
+### cocoaPercent vs rating
+
+Any correlation between cocoaPercent and rating?
+```{python}
+sns.scatterplot(df, x='cocoaPercent', y='rating')
+plt.show()
+```
+
+Nope, not really

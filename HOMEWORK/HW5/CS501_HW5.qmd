@@ -1,0 +1,286 @@
+---
+title: "CS 501 HW 5"
+date: last-modified
+author: "Hayden Coke and Connor Farrand"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+![Map of the Mill Stream Data Acquisition Points](./millstream.png)
+
+# Missingness Practice
+
+This week we will be using real data collected here in Salem - the Mill Stream dataset. This comes from the continuous monitoring system operated by the City of Salem's Watershed Council. The dataset is for two monitoring stations along Mill Stream (the same stream that flows through the Salem campus) at locations MIC3 and MIC12 (light green dots in the figure above.)
+
+The dataset has the following variables:
+* DO (dissolved oxygen)
+* Stream temperature
+* Turbidity
+
+Your job is to perform EDA on the dataset, similar to what we did in class. Because there is some missing data, this should include analyzing the pattern of missingness, making a suggestion of what could be causing missing data, and addressing the missingness (e.g. discard or impute using the appropriate method).
+
+## Instructions
+
+### Missingness Steps:
+* Evaluate the pattern of missingness - what do you find?
+* Based on your findings, either discard or impute the missing data. Provide a brief explanation for your choices.
+
+Setup
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("./../../datasets/salem_stream_daily_data.csv")
+df.head()
+```
+
+Checking missingness
+
+```{python}
+total_rows = df.shape[0]
+
+# check for missingness
+def missing_check(d, field):
+    missing_count = d[d[field].isna()].shape[0]
+    print(f"missing in {field}: {missing_count} ({(missing_count/total_rows)*100:.2f}%)")
+
+for col in df.columns:
+    missing_check(df, col)
+```
+
+It looks like avg_turbidity has the most missing values at 11%. DO_delta and avg_do have less missing values. 
+
+Patterns?
+
+```{python}
+# make masks for fields with missing values
+df['missing_avg_turb'] = df['avg_turbidity'].isna()
+df['missing_avg_do'] = df['avg_do'].isna()
+df['missing_DO_delta'] = df['DO_delta'].isna()
+
+# are there any observations that are missing all three of these fields?
+df['missing_all'] = df[['missing_avg_do', 'missing_avg_turb', 'missing_DO_delta']].all(axis='columns')
+
+print("missing all three fields:", df[df['missing_all'] == True].shape[0])
+
+# what about observations that are missing avg_do and do_delta?
+df['missing_do'] = df[['missing_avg_do', 'missing_DO_delta']].all(axis='columns')
+
+print("rows missing avg_do and do_delta:", df[df['missing_do'] == True].shape[0])
+
+# is one location more prone to missingness than another?
+# there are around the same amount of each location, so a count will work instead of a proportion
+locations_missingness = df.groupby('Location')[['missing_avg_turb','missing_avg_do', 'missing_DO_delta']].sum()
+
+print("\nMissingness by location:")
+print(locations_missingness)
+
+# any particular dates with more missingness?
+# (df.groupby('date_only')[['missing_avg_turb','missing_avg_do', 'missing_DO_delta']].sum()).sort_values(by=['missing_avg_turb','missing_avg_do', 'missing_DO_delta'], ascending=False)
+
+# not printing that out it's too much, plus it doesn't look like there's any particular pattern
+
+```
+
+Observations:
+
+- Date doesn't seem to be a good indicator of missingness. There's no particular date with a lot of missing values. 
+- Location is a better indicator of missingness.
+- 27 rows (<1%) have turbidity, average dissolved oxygen, *and* dissolved oxygen delta missing. Most of these are from the `MIC12` location.
+- 102 rows (1.35%) are missing both average dissolved oxygen and DO_delta, which is the same number of rows that are missing dissolved oxygen; this means that if avg_do is missing, DO_delta is also missing. 
+- Looking at missingness by location, `MIC12` has the most missingness in average turbidity, while `MIC3` has the most missingness in both dissolved oxygen fields.
+
+**What to do:**
+
+Since location is a better indication of missingness, we can impute the values for average turbidity and average dissolved oxygen using the averages of each field for each location.  
+
+I don't know how 'do_delta' is calculated, so I won't touch it for now.
+
+```{python}
+# note: this is completely unnecessary, but I spent so much time on it I'm leaving it in here anyway. A better way would be to use ffill
+
+location_avgs = df.groupby('Location').agg(
+    turbidity_means = ('avg_turbidity', 'mean'),
+    do_means = ('avg_do', 'mean')
+)
+
+print("averages by location:")
+print(location_avgs)
+
+# replacements for turbidity
+df.loc[(df['Location'] == 'MIC12') & (df['avg_turbidity'].isna()), 'avg_turbidity'] = location_avgs['turbidity_means']['MIC12']
+df.loc[(df['Location'] == 'MIC3') & (df['avg_turbidity'].isna()), 'avg_turbidity'] = location_avgs['turbidity_means']['MIC3']
+
+# replacements for avg_do
+df.loc[(df['Location'] == 'MIC12') & (df['avg_do'].isna()), 'avg_do'] = location_avgs['do_means']['MIC12']
+df.loc[(df['Location'] == 'MIC3') & (df['avg_do'].isna()), 'avg_do'] = location_avgs['do_means']['MIC3']
+
+```
+
+
+### EDA Steps:
+* Make sure the data is tidy!
+* Use pairplot to examine general correlations and distributions
+* Plot variables over time to look for longitudinal trends
+* Plot the distributions of numeric variables to look for outliers and skewness
+* For the categorical variables, examine differences across categories
+
+Tidy check and Pairplot:
+
+```{python}
+df_eda = df.iloc[:,0:6] # I don't need those flag columns I made earlier
+
+# check data types
+df_eda.dtypes
+
+# convert date to datetime
+df_eda['date'] = pd.to_datetime(df_eda['date_only'])
+
+sns.pairplot(df_eda, diag_kind='kde', hue='Location')
+plt.show()
+```
+
+Plot variables over time to look for longitudinal trends:
+
+```{python}
+# temp over time
+g = sns.lineplot(df_eda, x='date', y='avg_temp', hue='Location', alpha=0.7)
+plt.show
+```
+
+```{python}
+# average dissolved oxygen over time
+g = sns.lineplot(df_eda, x='date', y='avg_do', hue='Location', alpha=0.7)
+plt.show
+```
+
+```{python}
+# dissolved oxygen delta over time 
+g = sns.lineplot(df_eda, x='date', y='DO_delta', hue='Location', alpha=0.7)
+plt.show
+```
+
+```{python}
+# turbidity over time
+g = sns.lineplot(df_eda, x='date', y='avg_turbidity', hue='Location', alpha=0.7)
+plt.show
+```
+
+Plot the distributions of numeric variables to look for outliers and skewness:
+
+```{python}
+g = sns.displot(df_eda, x='avg_turbidity', hue='Location', kind='kde')
+plt.show()
+
+g = sns.displot(df_eda, x='avg_temp', hue='Location', kind='kde')
+plt.show()
+
+g = sns.displot(df_eda, x='avg_do', hue='Location', kind='kde')
+plt.show()
+
+g = sns.displot(df_eda, x='DO_delta', hue='Location', kind='kde')
+plt.show()
+```
+
+```{python}
+g = sns.boxplot(df_eda, x='avg_turbidity', y='Location')
+plt.show()
+
+g = sns.boxplot(df_eda, x='avg_temp', y='Location')
+plt.show()
+
+g = sns.boxplot(df_eda, x='avg_do', y='Location')
+plt.show()
+
+g = sns.boxplot(df_eda, x='DO_delta', y='Location')
+plt.show()
+
+```
+
+Observations:
+
+    - It looks like there's a correlation between average temperature and average dissolved oxygen. The graph for average DO and average temperature over time looks like they're about the same shape, but flipped. This agrees with the negative correlation shown in the pairplot.
+    - Average temperature looks like it's around the same for each location.
+    - DO delta is generally lower at MIC3 than at MIC12.
+    - Average turbidity has a *lot* of outliers, with most points in the range 0-20. The graph is heavily right-skewed.
+    - Average temperature and DO delta are also right skewed. Average dissolved oxygen looks like it's the most centered.
+
+---
+
+### Extra Credit
+
+* Divide each of the numeric variables by site location, then perform the Shapiro-Wilk test for normality (`scipy.stats.shapiro()`) on each distribution
+* Use a t-test (`scipy.stats.ttest_ind()`) to determine if there is a statistical difference between the two sites for each of the numeric variables.
+* Provide a brief summary of your findings.
+
+```{python}
+from scipy import stats
+
+# separating by location:
+df_12 = df[df['Location'] == 'MIC12']
+df_3 = df[df['Location'] == 'MIC3']
+
+numeric_columns = ['avg_temp', 'avg_do', 'avg_turbidity', 'DO_delta']
+```
+
+**Shapiro-Wilk tests**
+
+Null hypothesis: data is normally distributed
+
+```{python}
+def test_normal(d, col):
+    result = stats.shapiro(d[col], nan_policy='omit')
+    print(f"Shapiro-Wilk test for {col}:")
+    print(f"\tStat = {result.statistic:.2f}\n\tP-value = {result.pvalue}")
+
+    # check P value against alpha 0.05
+    if result.pvalue < 0.05:
+        print("\tReject null hypothesis, data is not normally distributed")
+    else:
+        print("\tDo not reject null hypothesis, data may be normally distributed")
+
+print("Normality tests for Location MIC12")
+for col in numeric_columns:
+    test_normal(df_12, col)
+    print() # make this more readable with an extre newline
+
+
+print("Normality tests for Location MIC3")
+for col in numeric_columns:
+    test_normal(df_3, col)
+    print() 
+
+```
+
+**T-Tests**
+
+Null hypothesis: means of each population is equal
+
+```{python}
+def test_t(d1, d2, col):
+    result = stats.ttest_ind(d1[col], d2[col], nan_policy='omit')
+    print(f"\tStat = {result.statistic:.2f}\n\tP-value = {result.pvalue}")
+
+    # check P value against alpha 0.05
+    if result.pvalue < 0.05:
+        print("\tReject null hypothesis, means are not equal")
+    else:
+        print("\tDo not reject null hypothesis, means may be equal")
+
+for col in numeric_columns:
+    print(f"T-test for {col} at MIC12 vs MIC3")
+    test_t(df_12, df_3, col)
+    print()
+
+```
+
+Findings:
+
+According to the Shapiro-Wilk test, none of the data is normally distributed. This agrees with the shape of the graphs from earlier (none of them looked like they would be normal). This also means that the assumptions of normality for the t-test fails.
+
+According to the T-test, the average dissolved oxygen, turbidity, and dissolved oxygen delta are not equal at each location. The average temperature is the only variable that may be the same at both locations, which is consistent with my guess based on the graph.

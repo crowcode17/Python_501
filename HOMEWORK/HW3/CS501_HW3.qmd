@@ -1,0 +1,154 @@
+---
+title: "CS 501 HW 3"
+date: last-modified
+author: "Hayden Coke and Victoria Fox"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+# Groupby Practice
+
+We are going reuse the diamonds dataset from the previous homework in today's exercise. For convenience the descriptions of each of the variables is copied here. 
+
+* **price:** price in US dollars (\$326--\$18,823)
+* **carat:** weight of the diamond (0.2--5.01)
+* **cut:** quality of the cut (Fair, Good, Very Good, Premium, Ideal)
+* **color:** diamond colour, from J (worst) to D (best)
+* **clarity:** a measurement of how clear the diamond is (I1 (worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (best))
+* **x:** length in mm (0--10.74)
+* **y:** width in mm (0--58.9)
+* **z:** depth in mm (0--31.8)
+* **depth:** total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)
+* **table:** width of top of diamond relative to widest point (43--95)
+
+The goal of the exercise is to re-implement some of our previous analyses using the groupby method.
+
+## Instructions
+
+Use the categorical variables in the dataset (cut, color, and clarity) to group and summarize the numeric variables (price, carat, x, y, z, depth, and table). Create the following outputs:
+
+1. A Series showing the average price by clarity
+
+2. A DataFrame showing the average x, y, and z by cut
+
+3. A DataFrame showing the average of all the numeric variables by color
+
+4. A DataFrame that includes the min, max, mean, and median price by clarity
+
+5. A DataFrame showing how many diamonds of each clarity there are for each cut (Hint: you can use the `count` function)
+
+6. A DataFrame grouped by cut, which shows the median for both depth and table, the mean and median for carat, and the count for clarity (provide names for each of the output variables, like "median_depth")
+
+7. A Dataframe grouped by cut, which shows how many diamonds there are of each color and clarity
+
+Lastly, use your newly created data structure to generate an appropriate plot for question #7.
+
+## Extra Credit
+
+Use `pd.cut()` to create a new variable in the dataframe called `price_binned` that bins the price variable into three levels: 'cheap' (less than the 25th quantile), 'moderate' (between the 25th quantile and the 75th quantile), and 'expensive' (greater than the 75th quantile). Use `groupby` to calculate the mean price for each price category to roughly check your work.
+
+Then use this variable to create a new dataframe with a multi-index (group by two variables: `price_binned` and `clarity`), with output columns named `mean_carat`, `median_carat`, and `count`. 
+
+Use multi-index indexing to print only the `count` column for each `clarity` level in the `cheap` category.
+
+## Answers
+
+Your text and code goes here! Use markdown to nicely format your plots and answers.
+
+```{python}
+# import libraries
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# import dataset
+df = pd.read_csv('./../../datasets/diamonds.csv')
+df
+```
+
+1. A Series showing the average price by clarity
+
+```{python}
+clarity_avg = df.groupby('clarity')['price'].mean()
+
+clarity_avg
+```
+
+2. A DataFrame showing the average x, y, and z by cut
+
+```{python}
+xyz_avg = df.groupby('cut')[['x','y','z']].mean()
+
+xyz_avg
+```
+
+3. A DataFrame showing the average of all the numeric variables by color
+
+```{python}
+numerics_avg = df.groupby('color')[['carat','depth','table','price','x','y','z']].mean()
+
+numerics_avg
+```
+
+4. A DataFrame that includes the min, max, mean, and median price by clarity
+
+```{python}
+clarity_prices = df.groupby('clarity')['price'].agg(['mean','min','max','median'])
+
+clarity_prices
+```
+
+5. A DataFrame showing how many diamonds of each clarity there are for each cut (Hint: you can use the `count` function)
+
+```{python}
+clarity_cut_count = df.groupby(['cut', 'clarity'])['price'].count()
+
+clarity_cut_count
+```
+
+6. A DataFrame grouped by cut, which shows the median for both depth and table, the mean and median for carat, and the count for clarity (provide names for each of the output variables, like "median_depth")
+
+```{python}
+cut_stats = df.groupby('cut').agg(
+    depth_median = ('depth', 'median'),
+    table_median = ('table', 'median'),
+    carat_mean   = ('carat', 'mean'),
+    carat_median = ('carat', 'median'),
+    clarity_count = ('clarity', 'count')
+)
+
+cut_stats
+```
+
+7. A Dataframe grouped by cut, which shows how many diamonds there are of each color and clarity
+
+```{python}
+ccc = df.groupby(['cut', 'color', 'clarity'])['price'].count()
+ccc
+```
+
+Plot: 
+
+```{python}
+ccc_reset_index = ccc.reset_index(name="count")
+
+g = sns.FacetGrid(ccc_reset_index, col="clarity", col_wrap=2)
+g.map_dataframe(sns.barplot, x="cut", y="count", hue="color", palette="mako")
+
+plt.show()
+
+```

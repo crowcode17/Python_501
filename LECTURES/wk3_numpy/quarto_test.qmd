@@ -1,0 +1,34 @@
+---
+title: "lecture 2"
+date: last-modified
+author: "Hayden Coke"
+theme: solar
+format:
+    html
+jupyter: python3
+---
+
+# header
+## smaller header
+
+# python block
+```{python}
+
+import numpy as np
+
+a = np.arange(10)
+print(a)
+
+print(1, 2, 3)
+
+```
+
+### formatting text to look like code
+`x = 3`
+
+reference a value from a code block in code-formatted text:
+
+`{python} a`
+
+
+

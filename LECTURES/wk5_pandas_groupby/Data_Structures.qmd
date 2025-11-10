@@ -1,0 +1,476 @@
+---
+title: "Data Structures and Groupby"
+date: last-modified
+author: "Professor Rachel Brown"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+# Python Data Structures
+
+```{python}
+# import libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+## Lists
+
+**Description:** Ordered, mutable collections that can store different data types
+
+**Examples:** Store measurement values, feature names, or analysis results
+
+```{python}
+# temperature readings from weather stations
+temps = [23.5, 25.1, 22.8, 24.9, 26.2]
+station_names = ['Downtown','Airport','Harbor','University','Industrial']
+
+# add new reading
+temps.append(27.1) # single item
+temps.extend([25.5, 24.8, 17.9, 20.2])
+
+# accessing and slicing
+recent_temps = temps[-3:] # last 3 readings (start at third from end, go to end)
+
+# list COMPREHENSION
+high_temps = [t for t in temps if t > 25] # get temps greater than 25
+
+# print format strings
+print(f"avg temp: {sum(temps)/len(temps):.2f} deg C")
+
+```
+
+## Dictionaries
+
+**Description:** Key-value pairs for structured data storage
+
+**Examples:** Store metadata, configuration parameters, or structured datasets
+
+```{python}
+# weather station metadata
+station_data = {
+    'station_id': 'WS001',
+    'location': {
+        'lat': 40.75,
+        'long': -73.98
+    },
+    'elevation': 15.2,
+    'sensors': ['temperature', 'humidity', 'pressure'],
+    'active': True
+}
+
+print(station_data)
+
+# coords = station_data['location']
+# print(coords)
+
+# sensor_count = len(station_data)
+# print(f'station has {sensor_count} sensors')
+
+weather_stations = {
+    'WS001' : {'temp': 25.1, 'humidity': 65},
+    'WS002' : {'temp': 23.8, 'humidity': 72},
+    'WS003' : {'temp': 26.4, 'humidity': 58},
+}
+
+print(weather_stations.keys())
+print(weather_stations.values())
+
+# average temp
+avg_temp = sum(data['temp'] for data in weather_stations.values())/len(weather_stations.values())
+print(f"average temp: {avg_temp:.2f}")
+
+```
+
+## Tuples
+
+**Description:** Ordered, immutable collections for fixed data
+
+**Examples:** Coordinates, RGB values, or database records
+
+```{python}
+# GPS coordinates 
+station_locations = [
+    ('Downtown', 40.75, -73.98),
+    ('Airport', 40.64, -73.77),
+    ('Harbor', 40.68, -74.04)
+]
+
+# unpacking values
+def calculate_distance(coord1, coord2):
+    _, lat1, long1 = coord1 # amount of variables MUST MATCH tuple
+    _, lat2, long2 = coord2
+
+    dist = ((lat2 - lat1)**2 + (long2 - long1)**2)**0.5 
+    return dist
+
+print("distance between Downtown and Airport:")
+print(calculate_distance(station_locations[0], station_locations[1]))
+
+```
+
+## Sets
+
+**Description:** Unordered collections of unique elements
+
+**Examples:** Finding unique values, set operations on categories
+
+```{python}
+# unique weather conditions
+conditions_day1 = {'sunny', 'cloudy', 'windy'}
+conditions_day2 = {'sunny', 'cloudy', 'rainy'}
+conditions_day3 = {'sunny', 'clear', 'dry'}
+
+# set operations
+# or 
+all_conditions = conditions_day1 | conditions_day2 | conditions_day3
+print(all_conditions)
+
+# and
+common_conditions = conditions_day1 & conditions_day2
+print(common_conditions)
+
+# minus
+unique_day1 = conditions_day1 - conditions_day2 - conditions_day3
+print(unique_day1)
+
+# finding unique sensors across stations
+sensors_station1 = {'temperature', 'humidity', 'pressure'}
+sensors_station2 = {'temperature', 'wind_speed', 'pressure'}
+
+all_sensors = sensors_station1 | sensors_station2
+print(all_sensors)
+
+```
+
+## Combined Example
+
+This database entry combines all the data structures we've talked about so far. Label each part of the database entry with the data structure that it uses.
+
+```{python}
+
+weather_data = {
+    'stations': [
+        ('WS001', 'Downtown', [25.1, 24.8, 26.2]),
+        ('WS002', 'Airport', [23.5, 24.1, 25.0])
+    ],
+    'conditions': {'sunny', 'cloudy', 'rainy'},
+    'metadata': {
+        'collection_date': '2024',
+        'units': 'celsius'}
+}
+
+```
+
+# Arrays and DataFrames
+
+## Review of Numpy Arrays
+
+**Description:** Efficient numerical arrays with vectorized operations
+
+```{python}
+# Setup: converting lists to arrays for efficient computation
+temperatures_list = [23.5, 25.1, 22.8, 24.9, 26.2, 27.1, 25.5, 24.8]
+temperatures_array = np.array(temperatures_list)
+
+# Multi-dimensional data: multiple sensors over time
+sensor_data = np.array([
+    [23.5, 65, 1013.2],  # temp, humidity, pressure
+    [25.1, 72, 1012.8],
+    [22.8, 58, 1014.1],
+    [24.9, 69, 1013.5]
+])
+
+# Array properties
+print(f"Shape: {sensor_data.shape}")        # 4 3
+print(f"Data type: {sensor_data.dtype}")    # float
+print(f"Dimensions: {sensor_data.ndim}")    # 2 
+```
+
+```{python}
+# vectorized operations
+temps_f = temperatures_array * 9/5 + 32
+print("temps in F:", temps_f)
+
+normalized_temps = (temperatures_array - np.mean(temperatures_array)) / np.std(temperatures_array)
+print("normalized temps:", normalized_temps)
+
+temp_stats = {
+    'mean': np.mean(temperatures_array),
+    'median': np.median(temperatures_array),
+}
+
+daily_averages = np.mean(sensor_data, axis=1)
+print("daily averages:", daily_averages)
+
+# boolean indexing
+high_temp_days = sensor_data[sensor_data[:,0] > 24]  # days with temp > 24
+print(high_temp_days)
+
+```
+
+## Review of DataFrames
+
+**Description:** Labeled data structures for structured data analysis
+
+```{python}
+# Setup: creating a DataFrame from dictionary
+weather_df = pd.DataFrame({
+    'date': pd.date_range('2024-03-01', periods=10),
+    'temperature': [23.5, 25.1, 22.8, 24.9, 26.2, 27.1, 25.5, 24.8, 23.9, 25.7],
+    'humidity': [65, 72, 58, 69, 74, 68, 71, 67, 63, 70],
+    'pressure': [1013.2, 1012.8, 1014.1, 1013.5, 1012.3, 1011.9, 1013.8, 1014.2, 1013.9, 1012.5],
+    'station': ['Downtown', 'Downtown', 'Airport', 'Downtown', 'Harbor', 
+                'Airport', 'Harbor', 'Downtown', 'Airport', 'Harbor']
+})
+```
+
+```{python}
+print(weather_df.head(), '\n')
+print(weather_df.describe(), '\n')
+print(weather_df.info(), '\n')
+
+# indexing and selection
+downtown_data = weather_df[weather_df['station'] == 'Downtown']
+temp_humidity = weather_df[['temperature', 'humidity']]
+recent_data = weather_df.iloc[-3:]
+
+```
+
+# The Pandas Groupby Function
+
+First, the simplest implementation of groupby! You always need at least three ingredients:
+
+1. One or more variables to group by
+2. One or more variables to aggregate on
+3. One or more functions to apply for aggregation
+    - aggregation (summary statistic)
+    - transformation 
+    - filtration
+
+## Basic Groupby
+
+```{python}
+# group by station and calculate mean temp
+avg_temp_station = weather_df.groupby('station')['temperature'].mean()
+
+# equivalent: 
+# avg_temp_station = weather_df.groupby('station')['temperature'].agg('mean')
+```
+
+We can also use multiple aggregation functions.
+
+```{python}
+# multiple agg functions to one column
+temp_stats = weather_df.groupby('station')['temperature'].agg(['mean', 'min', 'max', 'count'])
+# index becomes names of station, columns become mean, min, max, and count
+
+print("Temp stats by station:")
+print(temp_stats)
+```
+
+Or the same aggregation to multiple columns.
+
+```{python}
+# apply same agg to multiple columns
+multi_column_names = weather_df.groupby('station')[['temperature', 'humidity', 'pressure']].mean()
+print(multi_column_names.round(2))
+
+```
+
+## Specialized Groupby Output
+
+We can also customize the output of Groupby/Aggregate in a couple ways
+
+```{python}
+# apply different agg functions to different columns
+mixed_agg = weather_df.groupby('station').agg({
+    'temperature': 'mean',
+    'humidity': 'max',
+    'pressure': 'min',
+    'date': 'count'
+})
+
+print(mixed_agg.round(2))
+print('\n')
+
+simple_custom = weather_df.groupby('station').agg(
+    avg_temperature = ('temperature', 'mean'),
+    max_humidity = ('humidity', 'max'),
+    reading_count = ('temperature', 'count')
+)
+
+print(simple_custom)
+
+```
+
+
+
+
+
+
+
+# In Class Coding Exercise
+
+Today we will be continuing our weather theme by making use of a synthetic dataset called **Weather Data** published by (Prasad Patil on Kaggle)[https://www.kaggle.com/datasets/prasad22/weather-data]. The csv file has been provided to you, please put it in your "datasets" folder and use the appropriate path to access it.
+
+## Instructions
+
+In the original dataset there is only one categorical variable, `Location`. However, we also have a timestamp with a date, so we can separate out that information into columns for `year`, `month`, `day`, and `hour`, and group our data by those variables as well. This makes sense because there are likely to be interesting weather data correlations within these variables.
+
+### Part 1
+
+Before starting the grouping questions, create the additional variables you need by following these steps:
+
+* Load the dataset
+* Use the `pd.to_datetime` function to conver the `Date_Time` column to a datetime data type ((documentation here)[https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html])
+* Overwrite the imported dataset with a new dataset using the `.assign()` function ((docs)[https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.assign.html]) to create additional variables for the year, month, day, and hour. An example of how to get just the year would be `df['Date_Time'].dt.year`.
+* Print the first five rows (head()) of the new dataframe to check your work before continuing!
+
+### Part 2
+
+For the groupby practice, create the following outputs:
+
+1. Average temperature by location
+
+2. Average humidity, precipitation, and wind speed by location
+
+3. The min, max, mean, and median precipitation by month
+
+4. A DataFrame grouped by hour with the mean and median for both precipitation and wind speed (provide names for the output variables like "median_precipitation")
+
+5. Number of observations with a temperature over 30 degrees Celcius for each location (**Hint:** think about the best order of operations for this one!)
+
+6. Min, max, and median temperature and precipitation for each month
+
+### Part 3
+
+Lastly, use the data structure you created in question #6 to generate an appropriate visualization of that data.
+
+## Answers
+
+Your code and answers go here!
+
+### 1
+
+```{python}
+# import libraries
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# import dataset
+df = pd.read_csv('./../../datasets/weather_data.csv')
+
+df['Date_Time'] = pd.to_datetime(df['Date_Time'])
+
+df = df.assign(
+    year = df['Date_Time'].dt.year,
+    month = df['Date_Time'].dt.month,
+    day = df['Date_Time'].dt.day,
+    hour = df['Date_Time'].dt.hour
+)
+
+print(df.head())
+
+```
+
+### 2
+
+1. Average temperature by location
+
+```{python}
+avg_temp_location = df.groupby('Location')['Temperature_C'].mean()
+print(avg_temp_location)
+```
+
+2. Average humidity, precipitation, and wind speed by location
+
+```{python}
+avg_by_location = df.groupby('Location')[['Temperature_C', 'Humidity_pct', 'Wind_Speed_kmh']].mean()
+print(avg_by_location)
+```
+
+3. The min, max, mean, and median precipitation by month
+
+```{python}
+precip_month = df.groupby('month')['Precipitation_mm'].mean()
+print(precip_month)
+```
+
+4. A DataFrame grouped by hour with the mean and median for both precipitation and wind speed (provide names for the output variables like "median_precipitation")
+
+```{python}
+precip_wind = df.groupby('hour').agg(
+    mean_precipiation = ('Precipitation_mm', 'mean'),
+    median_precipiation = ('Precipitation_mm', 'median'),
+    mean_wind = ('Wind_Speed_kmh', 'mean'),
+    median_wind = ('Wind_Speed_kmh', 'median'),
+)
+
+print(precip_wind)
+
+```
+
+5. Number of observations with a temperature over 30 degrees Celcius for each location (**Hint:** think about the best order of operations for this one!)
+
+```{python}
+temp_df = df[df['Temperature_C'] > 30]
+high_temp_location = temp_df.groupby('Location')['Temperature_C'].count()
+
+print(high_temp_location)
+
+```
+
+6. Min, max, and median temperature and precipitation for each month
+```{python}
+month_temp_precip = df.groupby('month').agg(
+    min_temp = ('Temperature_C', 'min'),
+    max_temp = ('Temperature_C', 'max'),
+    med_temp = ('Temperature_C', 'median'),
+    min_prec = ('Precipitation_mm', 'min'),
+    max_prec = ('Precipitation_mm', 'max'),
+    med_prec = ('Precipitation_mm', 'median'),
+)
+
+print(month_temp_precip)
+```
+
+### 3
+
+Temperature and Precipiation by Month
+```{python}
+temp_df = month_temp_precip[['min_temp', 'max_temp', 'med_temp']]
+precip_df = month_temp_precip[['min_prec', 'max_prec', 'med_prec']]
+
+g1 = sns.lineplot(temp_df)
+g1.set_xlabel("Month")
+g1.set_ylabel("Temperature")
+plt.title("Temperature across months")
+plt.xticks(range(1,6))
+plt.show()
+
+g2 = sns.lineplot(precip_df)
+g2.set_xlabel("Month")
+g2.set_ylabel("Precipiation")
+plt.title("Precipitation across months")
+plt.xticks(range(1,6))
+plt.show()
+
+```

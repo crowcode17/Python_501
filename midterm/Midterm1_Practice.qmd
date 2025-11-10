@@ -1,0 +1,203 @@
+---
+title: "CS 501 Exam Practice"
+date: last-modified
+author: "Professor Rachel Brown"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+# Midterm #1
+
+For today's class you will be working with a dataset of NBA player stats collected by Justinas Cirtautas and published on [Kaggle](https://www.kaggle.com/datasets/justinas/nba-players-data). The data file `all_seasons.csv` has been provided to you on Canvas.
+
+The dataset contains demographic variables such as age, height, weight and place of birth, biographical details like the team played for, draft year and round. In addition, it has basic box score statistics such as games played, average number of points, rebounds, assists, etc.
+
+## Instructions
+
+### Practice with NumPy
+
+Load in the dataset as a pandas dataframe. Create a new dataframe containing only the following variables: `age`, `player_height`, `player_weight`, `pts`, `reb`, `ast`. Use the function `df.to_numpy()` to transform theses variables into a numpy array.
+
+```{python}
+# import libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# import dataset
+df_original = pd.read_csv('./../datasets/all_seasons.csv')
+
+# select columns and convert to numpy
+# not sure if .loc is actually necessary here?
+# df = df.loc[:,['age', 'player_height', 'player_weight', 'pts', 'reb', 'ast']]
+
+df = df_original[['age', 'player_height', 'player_weight', 'pts', 'reb', 'ast']]
+
+print("description:")
+print(df.describe())
+
+print("column types:")
+print(df.dtypes)
+
+arr = df.to_numpy()
+
+arr
+
+```
+
+Print the following information about the array:
+
+* Number of dimensions
+* Number of rows and columns
+* Total number of items in the array
+* Data type of items in the array
+
+```{python}
+print("columns:")
+print(df.columns)
+
+print("dimensions:", arr.ndim)
+
+rows, cols = arr.shape
+print(f"{rows} rows and {cols} columns")
+
+print(arr.size, "total items")
+
+print("data type:", arr.dtype)
+
+```
+
+Create a seaborn plot with the following:
+
+* Scatterplot of player height and weight
+* Set the x-axis tick values to be integers from the min height to the max height in intervals of 10
+* Set the y-axis tick values to be 10 equally spaced values between the min weight and max weight
+
+```{python}
+g = sns.scatterplot(df, x="player_height", y="player_weight")
+
+g.set(xticks=range(int(df['player_height'].min()), int(df['player_height'].max()+1), 10))
+g.set(yticks=range(int(df['player_weight'].min()), int(df['player_weight'].max()+1), 10))
+
+plt.show()
+
+```
+
+* Get the mean value for each variable across all players
+* Practice slicing the array using all the methods we learned in class (see the study guide)
+
+```{python}
+# mean value for each variable across all players
+# print(df.mean())
+
+# Slicing
+# by position: .iloc[index]
+# by labels: .loc[label] or df['label']
+# by values: boolean masking e.g. df[mask]
+
+print("\nindex with slice object - no iloc")
+# 0th to 3rd (exclusive) rows
+print(df[0:3])
+
+print("\nindex with slice object - iloc")
+# 0th to 3rd (exclusive) rows
+print(df.iloc[0:3])
+
+# get a specific cell (row, column) with a tuple
+print("\nrow 0, column 3 value - iloc")
+print(df.iloc[(0,3)])
+
+print("\nindex with column name - no loc")
+print(df['age'])
+
+print("\nindex with multiple column names - no loc")
+print(df[['age', 'pts']])
+
+print("\nbool mask: only stats for players with above average pts")
+mask = df['pts'] > df['pts'].mean()
+print(df[mask])
+
+```
+
+### Practice with Variables
+
+For each variable in the original dataframe, describe both the Python data type and the Data Science data type. 
+
+**All columns in `df` are floats and continuous numeric, and age is a float and discrete numeric.**
+
+Are any of the variables currently coded incorrectly? (e.g. numeric values encoded as strings, or integer values encoded as floats) If so, recode them correctly.
+
+What type of variable is `season`?
+
+**string, categorical ordinal**
+
+Use the `df.drop()` function to remove the Unnamed index column from the dataframe. Be sure your changes are saved (i.e. overwrite the existing dataframe).
+
+```{python}
+# convert age to int instead of float
+df_original.loc[:,'age'] = df_original['age'].astype('int64')
+
+print("column types:")
+print(df_original.dtypes)
+
+# drop Unnamed
+df_original = df_original.drop(index='Unnamed')
+
+```
+
+### Practice with DataFrames
+
+Use the `df.describe()` function with the argument `include='object'` to get a summary of the dataframe that includes the categorical variables.
+
+```{python}
+df_original.describe(include='object')
+```
+
+Use the `pairplot` function to explore relationships between all the variables.
+
+Create a dataframe that contains only the players from Portland. Then group by `player_name` and aggregate using the `first` function to get a single row for each player. Use this dataframe to compute the following stats about Portland players.
+
+```{python}
+mask = df_original['team_abbreviation'] == 'POR'
+portland_players = df_original[mask]
+
+portland_players.groupby('player_name').first()
+
+
+```
+
+* Make a boxplot showing the distribution of ages
+* Make a scatter plot of height vs weight
+* Use groupby along with the `.count()` and `.sort_values()` functions to get the top 5 colleges attended by Portland NBA players
+* Count how many Portland NBA players were undrafted
+
+Using the full dataset, choose appropriate variables to make the following plots. Note that you don't need to use all the data for every plot, you can filter first and choose a subset!
+
+* Lineplot
+* Scatterplot
+* Barplot
+* Histogram
+* Density plot
+* Boxplot
+* Violin plot
+
+For an extra challenge, create plots showing the following information:
+
+**Note:** Grouping and sorting first may be necessary!
+
+* Number of players drafted per college over time (use season as your time variable)
+* Violin plots split on draft round (only 1 and 2), showing distributions for `pts`, `reb` and `ast` (i.e. three split violins side by side)
+

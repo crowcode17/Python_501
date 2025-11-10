@@ -1,0 +1,464 @@
+---
+title: "CS 501 HW 4"
+date: last-modified
+author: "Hayden Coke and Bri Lee"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+# Data Cleaning
+
+This week's homework has two parts: 
+
+The first section will focus on string parsing using the `practiceflightdata.csv` file. The variables are:
+    * Row index
+    * Flight Number (combines airline and route number)
+    * Itinerary (airport codes for origin and destination)
+    * Day of Week (Sunday through Monday encoded as an integer)
+    * Distance in Miles (distance traveled)
+    * Delay (boolean indicating whether or not the flight was delayed)
+
+The second half will focus on pivoting and grouping using the **Hawaii Tourism Dataset** from DBEDT Data Warehouse (`HawaiiTourismData.csv`). Those variables are:
+    * Group (purpose of the visit to Hawaii)
+    * Indicator (where the services were provded, for the whole state and per island)
+    * Units (`days` for all rows in this dataset)
+    * Year of data collection (1999-2021), with values indicating average length of stay in days
+
+## Instructions
+
+### Part 1: Flight Data
+
+First you will need to tidy the data.
+
+0. Remove the old index column
+1. Create a new column called `airline` that contains only the airline abbreviation from the `FlightNumber` column
+2. Split the `Itinerary` column into `origin` and `destination` columns
+3. Split the `Duration` column into `hour` and `minute` columns
+4. Use the `hour` and `minute` columns you just created to calculate the duration in minutes, and make this a new column called `duration_min`
+5. Make sure that all columns have been recast as the appropriate type!
+
+Setup
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data_original = pd.read_csv("./../../datasets/practiceflightdata.csv")
+data_original.head()
+
+```
+
+Tidying Data
+
+```{python}
+# 0. Remove the old index column
+df = data_original.drop("Unnamed: 0", axis=1)
+
+# 1. Create a new column called `airline` that contains only the airline abbreviation from the `FlightNumber` column
+df['Airline'] = (df['FlightNumber'].str.split(expand=True)).get(0)
+
+# 2. Split the `Itinerary` column into `origin` and `destination` columns
+split = df['Itinerary'].str.split("/", expand=True)
+df['origin'] = split.get(0)
+df['destination'] = split.get(1)
+
+# 3. Split the `Duration` column into `hour` and `minute` columns
+split = df['Duration'].str.split(expand=True)
+df['hour'] = (split.get(0)).astype(int)
+df['minute'] = (split.get(2)).astype(int)
+
+# 4. Use the `hour` and `minute` columns you just created to calculate the duration in minutes, and make this a new column called `duration_min`
+df['duration_min'] = (df['hour'] * 60) + df['minute']
+
+# 5. Make sure that all columns have been recast as the appropriate type!
+
+# Delay should be a bool
+df['Delay'] = df['Delay'].astype(bool)
+print(df.dtypes)
+
+```
+
+Now you can do some analysis on the data! Answer each of the following questions with code.
+
+**Overall Trends:**
+
+Are there any patterns for which flights are most likely to be delayed? Check for trends / apparent correlations with respect to the following variables, and create appropriate plots for each of these variables relative to the percentage of flights delayed.
+
+    * airline
+    * origin
+    * destination
+    * day of week
+    * duration in minutes
+    * distance
+
+```{python}
+flights_delayed = sum(df['Delay'])
+flights_delayed_proportion = flights_delayed/len(df)
+
+print(f"total flights delayed: {flights_delayed_proportion*100:.2f}%")
+
+# flights with delays
+df_delays = df[df['Delay'] == True]
+
+# function to group the dataframe by a given field and count delays, then sort 
+def group_and_sort_delays(field):
+    return (df.groupby(by=field, as_index=False)['Delay'].count()).sort_values(by='Delay', ascending=False)
+
+# g = sns.pairplot(df, diag_kind="kde")
+# plt.show()
+```
+
+Airline
+```{python}
+airline_delays = group_and_sort_delays('Airline')
+g = sns.barplot(airline_delays, x='Airline', y='Delay')
+g.set(title = "Delays per Airline")
+plt.show()
+```
+
+Origin
+```{python}
+# since there are so many unique origins, just use the top 50
+origin_delays = group_and_sort_delays('origin')
+g = sns.barplot(origin_delays[:50], x='origin', y='Delay')
+g.set(title = "Delays per Origin")
+plt.xticks(rotation=90)
+plt.show()
+```
+
+Destination
+```{python}
+# similar to above, just use top 50
+dest_delays = group_and_sort_delays('destination')
+g = sns.barplot(dest_delays[:50], x='destination', y='Delay')
+g.set(title = "Delays per Destination")
+plt.xticks(rotation=90)
+plt.show()
+```
+
+Comparison of airlines with the most delays:
+```{python}
+(origin_delays['origin'][:10]).equals(dest_delays['destination'][:10])
+```
+
+Day of week
+```{python}
+day_delays = group_and_sort_delays('DayOfWeek')
+g = sns.barplot(day_delays, x='DayOfWeek', y='Delay')
+g.set(title = "Delays per day of week")
+plt.show()
+```
+
+Duration
+```{python}
+duration_delays = group_and_sort_delays('duration_min')
+g = sns.scatterplot(duration_delays, x='duration_min', y='Delay')
+g.set(title = "Delays per Duration (minutes)")
+plt.show()
+```
+
+Distance
+```{python}
+distance_delays = group_and_sort_delays('DistanceInMiles')
+g = sns.scatterplot(distance_delays, x='DistanceInMiles', y='Delay')
+g.set(title = "Delays per Distance in miles")
+plt.show()
+```
+
+Patterns seen:
+
+    * airline
+        * Most delays in WN, DL, OO, AA, and MQ
+    * origin and destination
+        * Routes with the most delays are the same for origin and destination
+    * day of week
+        * Delays happen the most on Tuesday (3) and Wednesday (4)
+    * duration in minutes
+        * No strong correlation
+    * distance
+        * Spike in delays around 100 miles
+
+**Specific Routes:**
+
+How many unique routes (based on the original flight number variable) are in this dataset? Find the min, max, and median number of observations per route.
+
+```{python}
+print("unique routes:", df['FlightNumber'].nunique())
+
+routes = df['FlightNumber'].value_counts()
+
+print("min:", routes.min())
+print("max:", routes.max())
+print("median:", routes.median())
+
+```
+
+Are there any particular routes that are more likely to be delayed? Are these outliers consistent with the overall trends of the dataset that you observed in the previous question?
+
+```{python}
+route_delays = group_and_sort_delays('Itinerary')
+
+print("Specific routes with the most delays:")
+print(route_delays[:15])
+```
+
+The airlines shown here are consistent with the airlines with the most delays shown in the `origin_delays` and `dest_delays` results.
+
+### Part 2: Tourism Data
+
+First you will need to tidy the data.
+
+0. Remove the extra lines at the bottom of the file describing the data source
+1. Remove the `Units` column since it provides no information
+2. Pivot the data from wide to long, resulting in a `year` column and a `days` column
+3. Separate out the statewide data into its own dataframe called `statewide` and remove the `Indicator` column from that dataframe since it provides no information
+4. For the remaining data, rename the `Indicator` column to `island` and clean up the values to only include the name of the island (removing "LOS on ")
+5. Make sure that all columns have been recast as the appropriate type!
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+data_hawaii = pd.read_csv("./../../datasets/HawaiiTourismData.csv")
+data_hawaii.head()
+
+# 0. Remove the extra lines at the bottom of the file describing the data source
+data_hawaii = data_hawaii.iloc[:116,:]
+
+# 1. Remove the `Units` column since it provides no information
+data_hawaii.drop(columns='Units', axis=1, inplace=True)
+
+# 2. Pivot the data from wide to long, resulting in a `year` column and a `days` column
+df_long = pd.melt(data_hawaii, id_vars=['Group', 'Indicator'], var_name='year', value_name='days')
+
+df_long['year'] = df_long['year'].astype(int)
+
+# 3. Separate out the statewide data into its own dataframe called `statewide` and remove the `Indicator` column from that dataframe since it provides no information
+df_islands = df_long[df_long['Indicator'] != 'LOS Statewide']
+df_statewide = df_long[df_long['Indicator'] == 'LOS Statewide']
+df_statewide.drop(columns='Indicator', axis=1, inplace=True)
+
+# 4. For the remaining data, rename the `Indicator` column to `island` and clean up the values to only include the name of the island (removing "LOS on ")
+df_islands.rename(columns={'Indicator':'island'}, inplace=True)
+df_islands['island'] = df_islands['island'].str[6:] # cut off first 7 characters 
+
+# 5. Make sure that all columns have been recast as the appropriate type!
+print("\ndf_islands data types:")
+print(df_islands.dtypes)
+
+print("\ndf_statewide data types:")
+print(df_statewide.dtypes)
+
+```
+
+Next we will do some data analysis.
+
+* Print out all the unique values for `Group`. Which groups would make sense to cluster together? (e.g. family-related or wedding-related). Use these clusters of groups to split the data into multiple plots for subsequent questions.
+
+```{python}
+print("unique group values:\n")
+print(df_long['Group'].unique())
+```
+
+Clusters I would make:
+
+Wedding:
+    - Honeymoon visitors
+    - Get-married visitors
+
+Lodging: (not sure what else to call this)
+    - Condo-only visitors
+    - Hotel-only visitors
+    - Rental house visitors
+    - B&B visitors
+    - Timeshare-only visitors
+
+Frequency:
+    - First-time visitors
+    - Repeat visitors
+
+Relationship:
+    - Visiting Friends/Relatives
+    - Family visitors
+
+Business:
+    - MCI visitors (Assuming MCI stands for "Meetings, Convention & Incentives")
+
+All visitors by air would probably be its own cluster.
+
+```{python}
+# cluster dict
+groups = {
+    'All' : ['All visitors by air'],
+    'Wedding' : ['Honeymoon visitors', 'Get-married visitors'],
+    'Lodging' : ['Condo-only visitors', 'Hotel-only visitors',
+                'Rental house visitors', 'B&B visitors',
+                'Timeshare-only visitors'],
+    'Frequency' : ['First-time visitors', 'Repeat visitors'],
+    'Relationship' : ['Visiting Friends/Relatives', 'Family visitors'],
+    'Business' : ['MCI visitors']
+}
+
+# clusters for statewide data
+statewide_all = df_statewide[df_statewide['Group'].isin(groups['All'])]
+statewide_wedding = df_statewide[df_statewide['Group'].isin(groups['Wedding'])]
+statewide_lodging = df_statewide[df_statewide['Group'].isin(groups['Lodging'])]
+statewide_freq = df_statewide[df_statewide['Group'].isin(groups['Frequency'])]
+statewide_relation = df_statewide[df_statewide['Group'].isin(groups['Relationship'])]
+statewide_business = df_statewide[df_statewide['Group'].isin(groups['Business'])]
+
+# clusters for island data
+islands_all = df_islands[df_islands['Group'].isin(groups['All'])]
+islands_wedding = df_islands[df_islands['Group'].isin(groups['Wedding'])]
+islands_lodging = df_islands[df_islands['Group'].isin(groups['Lodging'])]
+islands_freq = df_islands[df_islands['Group'].isin(groups['Frequency'])]
+islands_relation = df_islands[df_islands['Group'].isin(groups['Relationship'])]
+islands_business = df_islands[df_islands['Group'].isin(groups['Business'])]
+```
+
+
+* Use the **statewide data** to plot the average length of stay over time by group, creating one plot for each group cluster you created in the previous question.
+
+```{python}
+# All visitors
+g = sns.lineplot(statewide_all, x='year', y='days')
+g.set(title = 'average length of stay over time (Statewide, All visitors)')
+plt.show()
+
+# Wedding
+g = sns.lineplot(statewide_wedding, x='year', y='days', hue='Group')
+g.set(title = 'average length of stay over time (Statewide, Wedding-related)')
+plt.show()
+
+# Lodging
+g = sns.lineplot(statewide_lodging, x='year', y='days', hue='Group')
+g.set(title = 'average length of stay over time (Statewide, Lodging-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# Frequency
+g = sns.lineplot(statewide_freq, x='year', y='days', hue='Group')
+g.set(title = 'average length of stay over time (Statewide, Frequency-related)')
+plt.show()
+
+# Relationship
+g = sns.lineplot(statewide_relation, x='year', y='days', hue='Group')
+g.set(title = 'average length of stay over time (Statewide, Relationhip-related)')
+plt.show()
+
+# Business
+g = sns.lineplot(statewide_business, x='year', y='days')
+g.set(title = 'average length of stay over time (Statewide, Business)')
+plt.show()
+
+```
+
+* Use the **island data** to plot the average length of stay for visitors by air for each island over time in a single plot.
+
+```{python}
+g = sns.lineplot(df_islands[df_islands['Group'] == 'All visitors by air'], x='year', y='days', hue='island')
+
+g.set(title = 'average length of stay over time for each island')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+```
+
+* Using the island data from 2021 only, create one plot for each group cluster showing the average length of stay by group for each island.
+
+```{python}
+def only_2021(df):
+    return df[df['year'] == 2021]
+
+# All visitors
+g = sns.barplot(only_2021(islands_all), x='Group', y='days')
+g.set(title = 'average length of stay for each island (All visitors)')
+plt.show()
+
+# Wedding
+g = sns.barplot(only_2021(islands_wedding), x='island', y='days', hue='Group')
+g.set(title = 'average length of stay for each island (Wedding-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# Lodging
+g = sns.barplot(only_2021(islands_lodging), x='island', y='days', hue='Group')
+g.set(title = 'average length of stay for each island (Lodging-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# Frequency
+g = sns.barplot(only_2021(islands_freq), x='island', y='days', hue='Group')
+g.set(title = 'average length of stay for each island (Frequency-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# Relationship
+g = sns.barplot(only_2021(islands_relation), x='island', y='days', hue='Group')
+g.set(title = 'average length of stay for each island (Relationship-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# Business
+g = sns.barplot(only_2021(islands_business), x='island', y='days', hue='Group')
+g.set(title = 'average length of stay for each island (Business-related)')
+plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', borderaxespad=0)
+plt.show()
+```
+
+---
+
+* Do you observe any interesting trends in these data? Describe your observations.
+
+    * Huge spike in average length of stay across all plots in 2020
+    * Average length of stay is lower for Molokai, Hilo, and Lanai
+    * Repeat visitors stay for longer than First-time visitors
+
+### Extra Credit
+
+For the extra credit, you will combine both datasets! The commercial airports in Hawaii for which we have flight data have the following abbreviations:
+
+* ITO - Hilo
+* HNL - Oahu
+* OGG - Maui
+* KOA - Hawaii
+* LIH - Kauai
+* MKK - Molokai
+* LNY - Lanai
+
+For the flight data, create a new dataframe containing only the flights that include these airports in either the origin or destination. Then create a summary dataframe that has the following columns:
+
+* Airport abbreviation
+* Number of origin flights
+* Number of destination flights
+* Percentage of delays for origin flights
+* Percentage of delays for destination flights
+
+For the tourism data, create a new dataframe containing only the "All visitors by air" data for each island for the year 2021. Add a column to this dataframe with the airport code for each island.
+
+Now perform an **left join** on airport code between the two dataframes, with the tourism data on the left. Your final dataframe should have one row for each island, with the following columns:
+
+* Number of origin flights
+* Number of destination flights
+* Origin delay percentage
+* Destination delay percentage
+* 2021 visitors by air
+
+Write some comments on your observations for these data.

@@ -1,0 +1,190 @@
+---
+title: "CS 501 HW 2"
+date: last-modified
+author: "Hayden Coke and Hodan Aden"
+format:
+  html:
+    embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  /* background-color: lavender; */
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 8px;
+}
+</style>
+```
+
+# Plotting Practice
+
+We will use the classic diamonds dataset in today's exercise (available as part of data packages in both R and Python, and on kaggle). You can find information about each of the variables below. 
+
+* **price:** price in US dollars (\$326--\$18,823)
+* **carat:** weight of the diamond (0.2--5.01)
+* **cut:** quality of the cut (Fair, Good, Very Good, Premium, Ideal)
+* **color:** diamond colour, from J (worst) to D (best)
+* **clarity:** a measurement of how clear the diamond is (I1 (worst), SI2, SI1, VS2, VS1, VVS2, VVS1, IF (best))
+* **x:** length in mm (0--10.74)
+* **y:** width in mm (0--58.9)
+* **z:** depth in mm (0--31.8)
+* **depth:** total depth percentage = z / mean(x, y) = 2 * z / (x + y) (43--79)
+* **table:** width of top of diamond relative to widest point (43--95)
+
+## Instructions
+
+1. Use `describe()` and `sns.pairplot()` to examine overall trends in the data. Describe what you observe using markdown text.
+
+2. Which variables seem to influence each other? Make an informed guess about the direction of causality between these variables (you can refer to [the wikipedia page on Diamonds](https://en.wikipedia.org/wiki/Diamond) if you find it helpful).
+
+3. Choose any set of appropriate variables to generate each of the following plots. You can refer to the [seaborn gallery](https://seaborn.pydata.org/examples/index.html) for examples.
+
+* Scatter plot with a single pair of variables
+* Scatter plot of two variables with a third variable encoded using color
+* Bar plot with two variables
+* Grouped bar plot of two variables with a third variable encoded using color
+* Facet grid showing multiple levels of an ordinal variable on one axis
+* Violin plot showing a single continuous numeric variable on the y axis and a categorical variable on the x axis
+
+## Answers
+
+Your text and code goes here! Use markdown to nicely format your plots and answers.
+
+```{python}
+# import libraries
+import numpy as np
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# import dataset
+df = pd.read_csv('./../../datasets/diamonds.csv')
+df
+```
+
+### Examining trends
+
+```{python}
+df.describe()
+g = sns.pairplot(df, diag_kind="kde")
+plt.show()
+```
+
+Observations:
+
+    - The 'carat' column has a low standard deviation, indicating that most of the observed diamonds are around the same weight.
+    - On the other hand, price has a very high standard deviation as well as a large difference between the min and max price, indicating that the prices observed are very varied.
+    - The scatterplot showing carat relative to length (x) seems like a curve upwards, showing that weight increases as length increases.
+        - similar observation for width (y) and depth (z) with a sharper curve
+
+Variables that seem to influence each other:
+
+    - price by depth
+    - price by cut
+    - weight and length
+    - carat by dimensions (x, y, and z) 
+
+### Generating plots
+
+Scatterplot of length (x) and carat
+```{python}
+g1 = sns.scatterplot(df, x='x', y='carat')
+plt.title("Length vs Carat")
+plt.show()
+```
+
+
+Scatter plot of two variables with a third variable encoded using color
+```{python}
+g2 = sns.scatterplot(df, x='carat', y='price', hue='color')
+plt.show()
+```
+
+
+Bar plot of cut and price
+```{python}
+g3 = sns.barplot(df, x='cut', y='price', 
+                order=['Fair','Good','Very Good', 'Ideal','Premium'])
+plt.title("Cut vs Price")
+plt.show()
+```
+
+
+Grouped bar plot
+```{python}
+g4 = sns.catplot(df, kind="bar",
+    x="clarity", y="price", hue="cut")
+plt.show()
+```
+
+
+Facet grid
+```{python}
+g5 = sns.FacetGrid(df, col='clarity')
+g5.map(sns.scatterplot, 'x', 'carat')
+plt.show()
+```
+
+
+Violin plot of price (continuous numeric) and clarity (categorical ordinal)
+```{python}
+g6 = sns.violinplot(df, x='clarity', y='price',
+                    order=['VVS1','VVS2','VS1','VS2','SI1','SI2','I1'])
+plt.show()
+```
+
+## Extra Credit
+
+* Choose two plots from the [seaborn gallery](https://seaborn.pydata.org/examples/index.html) that we haven't already used and which are relevant to your EDA. Re-create them here using the diamonds dataset.
+* Explain why these are appropriate plots for this type of data. What trends or insights are visible?
+
+### Stacked histogram
+
+Based on [this seaborn gallery example](https://seaborn.pydata.org/examples/histogram_stacked.html)
+
+```{python}
+f, ax = plt.subplots(figsize=(7, 5))
+sns.despine(f)
+sns.set_theme(style="ticks")
+sns.histplot(
+    df,
+    x="price", hue="cut",
+    multiple="stack",
+    edgecolor=".3",
+    linewidth=.5,
+    # log_scale=True,
+)
+ax.xaxis.set_major_formatter(mpl.ticker.ScalarFormatter())
+ax.set_xticks([500, 1000, 2000, 5000, 10000])
+ax.set_xticklabels(ax.get_xticklabels(), rotation=-90)
+plt.show()
+```
+
+This plot also uses the diamond dataset and I wanted to see what it would look like without the log scaling. While the log scaling makes the plot more readable and look better, the linear scaling is more intuitive to me.
+
+Based on this plot, it looks like most of the prices in this dataset are in the 500-1500 range. This may mean that most diamonds sell for this range, but to confirm that would take more analysis. This range is also where a majority of the "Ideal" cut diamonds are. 
+
+
+### Boxplots
+
+Based on [this seaborn gallery example](https://seaborn.pydata.org/examples/grouped_boxplot.html) 
+
+with logarithmic scale:
+```{python}
+sns.boxplot(df, x="cut", y="price", log_scale=True)
+sns.despine(offset=10, trim=True)
+plt.show()
+```
+
+without log scale:
+```{python}
+sns.boxplot(df, x="cut", y="price")
+sns.despine(offset=10, trim=True)
+plt.show()
+```
+
+This is another plot that looks very different with log scaling. The plot without log scaling shows so many outlier dots on the upper end of price that it makes the whole plot look weird. On both plots, we can see that the median price for each cut is around the same price (roughly 2500). Something I don't really understand is why the upper range (the horizontal line on top of each boxplot) looks like it's the same across cuts on the log scale plot, but different on the linear scale plot.

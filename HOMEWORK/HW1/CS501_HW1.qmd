@@ -1,0 +1,155 @@
+---
+title: "CS 501 HW 1"
+date: last-modified
+author: "Hayden Coke and Bekah Peterson"
+format:
+  html
+css:
+  style.css
+jupyter: python3
+---
+# Numpy Practice
+
+For this assignment, your goal is to practice the following skills:
+
+* Making and compiling a quarto notebook
+* Loading a CSV file using numpy
+* Creating multiple variables by slicing the dataset array
+* Recasting variables to the appropriate type
+* Describing the distribution of each variable using simple descriptive statistics
+* Using comparative operators (>, <, ==) and boolean masking to index into the variables 
+
+## The Dataset
+
+This homework uses a dataset about movie profits. There are six variables, one for each column of the array.
+
+* Col 0: Movie Index
+* Col 1: Year
+* Col 2: US Gross ($M)
+* Col 3: Budget ($M)
+* Col 4: Run Time (min)
+* Col 5: Critic Score (Rotten Tomatoes)
+
+First, load the csv file, then separate out each column into its own variable. Determine which variables should be recast into a different data type by examining the values and using the column names above. Use the `arr.astype()` function to recast variables into the correct type (`float` or `int`) as needed.
+
+ALSO, create a list of strings (called `varNames`) with the names of each of the columns.
+
+```{python}
+# Import the numpy library
+import numpy as np
+
+# Load the csv file
+data = np.loadtxt(fname='movie_profits_numeric.csv', delimiter=',')
+# print(data)
+
+# Create one variable for each column
+# Recast variables to the correct type as needed
+
+# index = (data[:,0]).astype(int)
+# year = (data[:,1]).astype(int)
+# gross = (data[:,2]).astype(float)
+# budget = (data[:,3]).astype(int)
+# run = (data[:,4]).astype(int)
+# scores = (data[:,5]).astype(int)
+
+index = data[:,0]
+index = index.astype(int)
+year = data[:,1]
+gross = data[:,2]
+budget = data[:,3]
+run = data[:,4]
+scores = data[:,5]
+
+movieData = np.array([index, year, gross, budget, run, scores])
+
+movieData[0] = movieData[0].astype(int)
+movieData[1] = movieData[1].astype(int)
+movieData[3] = movieData[3].astype(int)
+movieData[4] = movieData[4].astype(int)
+movieData[5] = movieData[5].astype(int)
+
+# Create a list of variable names as strings
+varNames = ["Movie Index", "Year", "US Gross ($M)", "Budget ($M)", "Run Time (min)", "Critic Score"]
+
+```
+
+
+## Descriptive Statistics
+
+For each variable, print the **variable name** by indexing into the `varNames` list. Then describe the range of values in the dataset. For **Movie Index** and **Year** you can just report the min and max. For the other variables, report the min, max, mean, and median. (Refer back to the slides if you can't remember which functions to use.) Use the `print` function to output the values along with their labels (similar to the examples in our NumPy Basics exercise).
+
+**BONUS:** To save space, if you know how, you can print your outputs using a for loop and the `enumerate` function!
+
+```{python}
+# Report min and max values for Movie Index and Year
+# Use indexing to get the variable names
+# Report min, max, mean, and median for the remaining vars
+
+for i in range(2):
+  print(varNames[i])
+  print("\tmin:", np.min(movieData[i]))
+  print("\tmax:", np.max(movieData[i]))
+
+for i in range(2,6):
+  print(varNames[i])
+  print("\tmin:", np.min(movieData[i]))
+  print("\tmax:", np.max(movieData[i]))
+  print("\tmean:", np.mean(movieData[i]))
+  print("\tmedian:", np.median(movieData[i]))
+
+```
+
+## Boolean Masking
+
+We can create an array of True/False boolean values using comparative operators such as `<`, `>`, and `==`. We can then use these boolean arrays to index into our data!
+
+####
+
+
+For the runtime variable, create a boolean array called `longRuntimeMask` that is True for elements that are greater than the mean. Use this boolean array to create a new array called `longRuntime` that only contains the elements that are greater than the mean.
+
+Then use the `len` function to print out how many movies are longer than the mean.
+
+```{python}
+# Create a boolean that is True for elements greater than the mean
+longRuntimeMask = run > np.mean(run)
+
+# Use the boolean array to get only long runtime rows
+longRuntime = run[longRuntimeMask]
+
+# Use the len function to print the number of movies longer than the mean
+print("movies longer than the mean:",len(longRuntime))
+
+```
+
+Now we will apply this boolean mask to a different variable of the same length. Use `longRuntimeMask` and its inverse (you will need the `~` operator) on the score variable to get the average score for both shorter run times and longer run times.
+
+```{python}
+# Create an array with only the scores for long movies
+longMovieScores = scores[longRuntimeMask]
+
+# Create an array with only the scores for short movies
+shortMovieScores = scores[~longRuntimeMask]
+
+# Print out the average rating for both long and short movies
+print("average rating for long movies:", np.mean(longMovieScores))
+print("average rating for short movies:", np.mean(shortMovieScores))
+
+```
+
+What is the run time of the movie(s) with the highest score? Use the `np.max` function and the `==` operator to create a boolean mask that is only True for rows with the highest score. Then apply that mask to the Run Time variable to get and print the corresponding rows. If there are multiple rows with the max score, print the mean run time.
+
+```{python}
+# Create a boolean mask for rows with the highest score
+highestScoreMask = scores == np.max(scores)
+
+# Apply the high score mask to the run time variable
+highestScoresRuntimes = run[highestScoreMask]
+
+# Get the length of the high score runtime array
+print("High score runs:", len(highestScoresRuntimes))
+
+# Print the average run time of the high scoring movies
+print("average run time of the high scoring movies:", np.mean(highestScoresRuntimes))
+
+```

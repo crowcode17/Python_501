@@ -1,0 +1,273 @@
+---
+title: "Data Cleaning"
+date: last-modified
+author: "Hayden Coke and Bri Lee"
+format: 
+    html:
+        embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+```{python}
+# Import libraries
+import numpy as np
+import pandas as pd
+```
+
+# Data Cleaning Exercise
+
+## Load the data
+```{python}
+# Dataset 1: Candy Sales Data
+candy_sales = pd.DataFrame({
+    'sale_id': range(1, 16),
+    'Candy Name': ['Reeses Cups', 'SNICKERS', 'Kit Kat', 'twix', 'Reeses Cups', 
+                   'Snickers', 'KIT KAT', 'Twix', 'Milky Way', 'reeses cups',
+                   'Skittles', 'snickers', 'M&Ms', 'REESES CUPS', 'Kit Kat'],
+    'Price_Bags': ['$3.50|10', '$2.00|15', '$2.50|12', '$2.75|8', '$3.50|5',
+                   '$2.00|20', '$2.50|6', '$2.75|10', '$2.25|14', '$3.50|8',
+                   '$1.75|25', '$2.00|18', '$3.00|10', '$3.50|12', '$2.50|7'],
+    'Revenue$': ['$35.00', '$30.00', '$30.00', '$22.00', '$17.50',
+                 '$40.00', '$15.00', '$27.50', '$31.50', '$28.00',
+                 '$43.75', '$36.00', '$30.00', '$42.00', '$17.50'],
+    'Discount%': ['10%', '5%', '0%', '15%', '10%',
+                  '5%', '0%', '15%', '20%', '10%',
+                  '0%', '5%', '10%', '10%', '0%'],
+    'Neighborhood': ['Maple Street', 'Oak Avenue', 'Elm Drive', 'Pine Lane', 'Maple Street',
+                     'Oak Avenue', 'Elm Drive', 'Pine Lane', 'Maple Street', 'Oak Avenue',
+                     'Elm Drive', 'Pine Lane', 'Maple Street', 'Oak Avenue', 'Elm Drive']
+})
+
+# Dataset 2: Trick-or-Treater Data (Wide Format)
+treater_data = pd.DataFrame({
+    'treater_id': range(101, 106),
+    'name': ['Vampire Vic', 'Witch Wendy', 'Ghost Gary', 'Zombie Zoe', 'Mummy Mike'],
+    'Week1_candies': [45, 62, 38, 71, 53],
+    'Week2_candies': [52, 58, 41, 68, 56],
+    'Week3_candies': [48, 65, 44, 75, 54],
+    'Week4_candies': [58, 70, 47, 78, 59]
+})
+
+# Dataset 3: Customer Data
+customer_data = pd.DataFrame({
+    'customer_id': [1, 2, 3, 4, 5, 1, 2, 6, 7, 3],
+    'sale_id': [1, 2, 3, 4, 5, 11, 12, 13, 14, 15],
+    'customer_name': ['Haunted House Party', 'boo bash events', 'SPOOKY CELEBRATIONS', 
+                      'Trick Treat Co', 'halloween EXPRESS', 'Haunted House Party',
+                      'boo bash events', 'Frightful Fun', 'COSTUME Kingdom', 'SPOOKY CELEBRATIONS'],
+    'email': ['haunted@party.com', 'boo@bash.com', 'spooky@cel.com',
+              'trick@treat.com', 'halloween@exp.com', 'haunted@party.com',
+              'boo@bash.com', 'frightful@fun.com', 'costume@king.com', 'spooky@cel.com']
+})
+
+# Dataset 4: Candy Categories
+candy_categories = pd.DataFrame({
+    'candy': ['Reeses Cups', 'Snickers', 'Kit Kat', 'Twix', 'Milky Way', 'Skittles', 'M&Ms'],
+    'category': ['Chocolate', 'Chocolate', 'Chocolate', 'Chocolate', 'Chocolate', 'Fruit', 'Chocolate'],
+    'manufacturer_id': [301, 302, 303, 302, 302, 304, 302]
+})
+```
+
+## Answer the following questions with code
+
+**1. Column Renaming**
+
+* Rename the columns in candy_sales to follow snake_case convention. Use `inplace=True` and print out candy_sales to check your work.
+
+    * Candy Name → candy_name
+    * Price_Bags → price_bags
+    * Revenue$ → revenue
+    * Discount% → discount_pct
+    * Neighborhood → neighborhood
+
+```{python}
+# df.rename(columns={'oldName1': 'newName1', 'oldName2': 'newName2'}, inplace=True)
+
+candy_sales.rename(
+    columns = {'Candy Name': 'candy_name',
+                'Price_Bags': 'price_bags',
+                'Revenue$': 'revenue',
+                'Discount%': 'discount_pct',
+                'Neighborhood': 'neighborhood'},
+    inplace = True
+)
+
+candy_sales
+
+```
+
+**2. Dropping Rows and Columns**
+
+* Remove the email column from customer_data (`df.drop`)
+* Remove duplicate customer entries from customer_data (keep first occurrence) (`df.drop_duplicates`)
+* Create a new dataframe called `low_sales` that removes any rows from `candy_sales` where sale_id is greater than 12 (hint: use boolean indexing)
+
+```{python}
+customer_data.drop(columns=['email'], inplace=True)
+customer_data
+
+customer_data_unique = customer_data.drop_duplicates(subset = ["customer_id"], inplace = False)
+customer_data_unique
+
+low_sales = candy_sales[candy_sales['sale_id'] <= 12]
+low_sales
+
+```
+
+**3. Cleaning and Converting Data**
+
+* In candy_sales, use a lambda function to remove the $ symbol from the revenue column and convert it to a float
+* In candy_sales, use the pandas `strip` function to remove the % symbol from the discount_pct column and convert it to an int (the value should be 10 for 10%, not 0.10)
+* Standardize the candy_name column in candy_sales so all candy names are in Title Case (e.g., "Reeses Cups", "Snickers")
+
+```{python}
+# In candy_sales, use a lambda function to remove the $ symbol from the revenue column and convert it to a float
+
+candy_sales['revenue'] = candy_sales['revenue'].map(lambda value : float(str.strip(value, "$")))
+
+# In candy_sales, use the pandas `strip` function to remove the % symbol from the discount_pct column and convert it to an int (the value should be 10 for 10%, not 0.10)
+
+candy_sales['discount_pct'] = candy_sales['discount_pct'].str.strip('%').astype('int')
+
+# Standardize the candy_name column in candy_sales so all candy names are in Title Case (e.g., "Reeses Cups", "Snickers")
+
+candy_sales['candy_name'] = candy_sales['candy_name'].str.title()
+
+candy_sales
+
+```
+
+**4. Splitting Columns**
+
+* Split the price_bags column in candy_sales into two separate columns: price (numeric) and bags (numeric). Remove the original price_bags column and the $ symbol from price values.
+
+```{python}
+split_sales = candy_sales['price_bags'].str.split('|', expand=True)
+
+candy_sales['price'] = split_sales[0][:]
+candy_sales['bags'] = split_sales[1][:]
+
+# remove $ and convert to float
+candy_sales['price'] = candy_sales['price'].map(lambda value : float(str.strip(value, "$")))
+
+candy_sales['bags'] = candy_sales['bags'].astype('int')
+
+# drop price_bags
+candy_sales.drop(columns='price_bags', inplace=True)
+
+candy_sales
+
+```
+
+**5. Pivoting with pd.melt()**
+
+* Convert treater_data from wide to long format using pd.melt(). The result be a new dataframe called `treater_data_long` and should have columns: treater_id, name, week, and candies. The week column should contain values like 'Week1_candies', 'Week2_candies', etc.
+* Clean up the result from the previous question by removing the '_candies' suffix from the week values (so 'Week1_candies' becomes 'Week1') (Hint: you can use `str.get()` to get only half of the `str.split()` output)
+
+```{python}
+# Convert treater_data from wide to long format using pd.melt()
+
+treater_data_long = pd.melt(treater_data, id_vars=['treater_id', 'name'], var_name='week', value_name='candy_count')
+
+# Clean up the result from the previous question by removing the '_candies' suffix from the week values
+
+treater_data_long['week'] = treater_data_long['week'].str.strip("_candies")
+
+treater_data_long
+
+```
+
+**6. Grouping and Filtering**
+
+* Group candy_sales by neighborhood and calculate the total revenue for each neighborhood
+* Use get_group() to extract only the candy sales data for the 'Maple Street' neighborhood
+* Use the `query` function to filter candy_sales to show only rows where the candy is 'Reeses Cups' AND revenue is greater than $20
+* Sort candy_sales by revenue in descending order
+
+```{python}
+# Group candy_sales by neighborhood and calculate the total revenue for each neighborhood
+neighborhood_revenue = candy_sales.groupby('neighborhood')['revenue'].sum()
+
+# Use get_group() to extract only the candy sales data for the 'Maple Street' neighborhood
+maple_revenue = candy_sales.groupby('neighborhood')['revenue'].get_group('Maple Street')
+
+# Use the `query` function to filter candy_sales to show only rows where the candy is 'Reeses Cups' AND revenue is greater than $20
+reeses = candy_sales.query('candy_name == "Reeses Cups" and revenue > 20')
+
+# Sort candy_sales by revenue in descending order
+candy_sales.sort_values('revenue', ascending=False, inplace=True)
+
+```
+
+**7. Joining Datasets**
+
+* Use `pd.merge()` to perform an inner join between candy_sales and customer_data on sale_id. Save the result as a new dataframe called `innerjoin`. How many rows are in the result?
+
+```{python}
+innerjoin = pd.merge(candy_sales, customer_data, how='inner', on='sale_id')
+
+print("rows:", len(innerjoin))
+
+print(innerjoin)
+```
+
+* How many rows would you have if you had done the same operation as a left join instead?
+
+```{python}
+innerjoin = pd.merge(candy_sales, customer_data, how='left', on='sale_id')
+
+print("rows:", len(innerjoin))
+
+print(innerjoin)
+```
+
+* Join the `innerjoin` dataset with candy_categories using a left join. You'll need to join on the candy name (but be careful - the column names are different!)
+
+```{python}
+pd.merge(innerjoin, candy_categories, how='left', left_on='candy_name', right_on='candy')
+```
+
+* Perform an outer join between candy_sales and customer_data on sale_id, called `outerjoin`. Use the `.isna()` function to select only the sales that have no customer information.
+
+```{python}
+outerjoin = pd.merge(candy_sales, customer_data, how='outer', on='sale_id')
+
+outerjoin[outerjoin['customer_name'].isna()]
+```
+
+* Create a final dataset that combines candy_sales, customer_data, and candy_categories using appropriate joins. The result should include: sale_id, candy_name, price, bags, revenue, customer_name, category, and manufacturer_id.
+
+```{python}
+ds = pd.merge(candy_sales, customer_data, how='left', on='sale_id')
+ds = pd.merge(ds, candy_categories, how='left', left_on='candy_name', right_on='candy')
+
+ds
+```
+
+**8. Using your final dataset from question 20, group by category and calculate:**
+
+* Total revenue per category
+* Average price per category
+* Total bags sold per category
+* Then sort the results by total revenue in descending order
+
+```{python}
+stats = ds.groupby('category').agg(
+    revenue_total = ('revenue', 'sum'),
+    price_mean = ('price', 'mean'),
+    bags_total = ('bags', 'sum')
+)
+
+stats.sort_values('revenue_total', ascending=False)
+
+```
