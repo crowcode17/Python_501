@@ -55,6 +55,8 @@ For the extra credit, I would like you to do the same multi linear regression an
 
 **Hint:** You might need to transform some of the variables in the diamonds dataset first (e.g. use the log of a variable) in order to achieve linearity.
 
+---
+
 ```{python}
 import numpy as np
 import pandas as pd
@@ -84,21 +86,29 @@ Based on the shape of the graph, there appears to be a negative correlation betw
 
 ```{python}
 # Linear fit for the numeric variable (percent disadvantaged)
-pd_reshape = df['perc_disadvan'].values.reshape((-1, 1))
-model_pd = LinearRegression().fit(pd_reshape, df['average_sat_math'])
+x = df['perc_disadvan'].values.reshape((-1, 1)) 
+model_perc_dis = LinearRegression().fit(x, df['average_sat_math'])
 
 print("linear regression of percent disadvantaged vs SAT math score")
-print("adjusted R^2 score:", model_pd.score(pd_reshape, df['average_sat_math']))
-print("slope (coef):", model_pd.coef_)
-print("intercept:", model_pd.intercept_)
+print("adjusted R^2 score:", model_perc_dis.score(x, df['average_sat_math']))
+print("slope (coef):", model_perc_dis.coef_)
+print("intercept:", model_perc_dis.intercept_)
+```
 
+```{python}
 # Plot the residuals
+perc_dis_prediction = model_perc_dis.predict(x)
+perc_dis_residuals = (df['average_sat_math'] - perc_dis_prediction)
 
+g = sns.scatterplot(perc_dis_residuals)
+plt.axhline(y=0, color='red') 
+plt.show()
+```
 
+```{python}
 # Plot the linear fit
 sns.lmplot(data=df, x="perc_disadvan", y="average_sat_math")
 plt.show()
-
 ```
 
 ```{python}
@@ -110,16 +120,25 @@ size_num_reshape = df['size_num'].values.reshape((-1, 1))
 model_size = LinearRegression().fit(size_num_reshape, df['average_sat_math'])
 
 print("linear regression of school size vs SAT math score")
-print("adjusted R^2 score:", model_size.score(pd_reshape, df['average_sat_math']))
+print("adjusted R^2 score:", model_size.score(x, df['average_sat_math']))
 print("slope (coef):", model_size.coef_)
 print("intercept:", model_size.intercept_)
+```
 
+```{python}
 # Plot the residuals
+size_prediction = model_size.predict(df['size_num'].values.reshape((-1, 1)))
+size_residuals = (df['average_sat_math'] - size_prediction)
 
+g = sns.scatterplot(size_residuals)
+plt.axhline(y=0, color='red') 
+plt.show()
+```
+
+```{python}
 # Plot the linear fit
 sns.lmplot(data=df, x="size_num", y="average_sat_math")
 plt.show()
-
 ```
 
 ### Checking Model Fit
@@ -130,29 +149,78 @@ Once you have fit your model, do some checks to make sure that a linear model is
     
     * Do they meet the criteria for linearity and uniformity that we discussed in class?
 
+**Percent Disadvantaged PED**
+
+```{python}
+perc_dis_PED = PredictionErrorDisplay(y_true=df['average_sat_math'], y_pred=perc_dis_prediction)
+perc_dis_PED.plot()
+plt.show()
+```
+
+Most points are within the range of -50 to 50, which looks good.
+
+**Size PED**
+
+```{python}
+size_PED = PredictionErrorDisplay(y_true=df['average_sat_math'], y_pred=size_prediction)
+size_PED.plot()
+plt.show()
+```
+
+It's harder to tell here, but it doesn't look uniform.
+
 2. Next, check whether your residuals are normally distributed using the `probplot` imported above. Probplot takes in the residuals and compares them to a standard distribution (in this case, you want `norm` for the normal distribution). You can pass in `plt` for the plot argument, and then call `plt.show()` to view the plot. 
 
     * Do all the residuals fall along a line in the Q-Q plot? Then they are normally distributed! Great!
+
+**Percent Disadvantaged Residuals:**
+
+```{python}
+pp = probplot(perc_dis_residuals, dist='norm', plot=plt)
+plt.show()
+```
+
+Points typically fall close to the line, but less so at the far ends.
+
+**Size Residuals:**
+
+```{python}
+pp = probplot(size_residuals, dist='norm', plot=plt)
+plt.show()
+```
+
+These points don't closesly follow the line, so they're probably not normally distributed.
 
 3. Finally, use the `variance_inflation_factor` function imported above to check if the two variables are collinear. Note this just takes in the two columns of the dataframe, `perc_disadvan` and `sizenumeric`, and you can pass in either 0 or 1 for the exogenous index since there are only two variables so it doesn't matter which one you choose. 
     
     * Is the resulting value less than 5? Then your variables are not collinear. Great!
 
 ```{python}
-# Check if residuals are normally distributed
-
+vif = variance_inflation_factor(df[['perc_disadvan', 'size_num']], 0)
+print("VIF =", vif)
 ```
 
-```{python}
-# Check for variance inflation factor
-
-```
+The VIF is less than 5, so the size and percent disadvantaged variables are not collinear.
 
 ### Computing Multi Linear Regression
 
+Lastly, repeat the same steps you followed in the simple linear regression section above, but this time use both variables together! In this case the `x` input to the linear model is going to be two columns of the dataframe, `perc_disadvan` and `sizenumeric`. Similarly, in the lmplot function you will want to choose one of the variables to be encoded as `hue`.
+
 ```{python}
 # Do multiple linear regression
+x = df[['perc_disadvan', 'size_num']]
 
+model_multi = LinearRegression().fit(x, df['average_sat_math'])
+
+print("multi linear regression of school size and percent disadvantaged vs SAT math score")
+print("adjusted R^2 score:", model_multi.score(x, df['average_sat_math']))
+print("slope (coef):", model_multi.coef_)
+print("intercept:", model_multi.intercept_)
+```
+
+```{python}
+sns.lmplot(data=df, x="perc_disadvan", y="average_sat_math", hue="size_num")
+plt.show()
 ```
 
 ### The Outlier
@@ -161,7 +229,7 @@ In all the plots up until this point there has been one noticeable outlier... Fi
 
 ```{python}
 # Filter to find the outlier
-df[(df['size'] == 'small') & (df['average_sat_math'] > 700)]
+df[df['average_sat_math'] > 700]
 ```
 
 The outlier is Massachusetts Academy for Math and Science School, at row 167 of the data.
@@ -172,12 +240,45 @@ Re-running the models without the outlier:
 # new dataframe without the outlier:
 df_2 = df[df['school_name'] != "Ma Academy for Math and Science School"]
 
-sns.lmplot(data=df_2, x="perc_disadvan", y="average_sat_math")
-plt.show()
+# Modeling perc_disadvan without outlier
+x_2 = df_2['perc_disadvan'].values.reshape((-1, 1)) 
+model_pd_2 = LinearRegression().fit(x_2, df_2['average_sat_math'])
 
-sns.lmplot(data=df_2, x="size_num", y="average_sat_math")
-plt.show()
+print("ORIGINAL LINEAR MODEL")
+print("linear regression of percent disadvantaged vs SAT math score")
+print("adjusted R^2 score:", model_perc_dis.score(x_2, df_2['average_sat_math']))
+print("slope (coef):", model_perc_dis.coef_)
+print("intercept:", model_perc_dis.intercept_)
 
+print("\nLINEAR MODEL AFTER REMOVING OUTLIER")
+print("linear regression of percent disadvantaged vs SAT math score")
+print("adjusted R^2 score:", model_pd_2.score(x_2, df_2['average_sat_math']))
+print("slope (coef):", model_pd_2.coef_)
+print("intercept:", model_pd_2.intercept_)
 ```
+
+Taking out the outlier in the percent disadvantaged model does make a difference, but not a very big one. 
+The Adj. R^2 score went up by 0.01 and the slope went down by 0.03.
+The largest change is in the intercept, which changed by 1.44 points.
+
+```{python}
+# Modeling size without outlier
+x_2 = df_2['size_num'].values.reshape((-1, 1)) 
+model_size_2 = LinearRegression().fit(x_2, df_2['average_sat_math'])
+
+print("ORIGINAL LINEAR MODEL")
+print("linear regression of school size vs SAT math score")
+print("adjusted R^2 score:", model_size_2.score(x_2, df_2['average_sat_math']))
+print("slope (coef):", model_size_2.coef_)
+print("intercept:", model_size_2.intercept_)
+
+print("\nLINEAR MODEL AFTER REMOVING OUTLIER")
+print("linear regression of school vs SAT math score")
+print("adjusted R^2 score:", model_size_2.score(x_2, df_2['average_sat_math']))
+print("slope (coef):", model_size_2.coef_)
+print("intercept:", model_size_2.intercept_)
+```
+
+For the model looking at school size, removing the outlier causes even smaller of a difference.
 
 ### Extra Credit
