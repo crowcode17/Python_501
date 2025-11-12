@@ -120,7 +120,7 @@ size_num_reshape = df['size_num'].values.reshape((-1, 1))
 model_size = LinearRegression().fit(size_num_reshape, df['average_sat_math'])
 
 print("linear regression of school size vs SAT math score")
-print("adjusted R^2 score:", model_size.score(x, df['average_sat_math']))
+print("adjusted R^2 score:", model_size.score(size_num_reshape, df['average_sat_math']))
 print("slope (coef):", model_size.coef_)
 print("intercept:", model_size.intercept_)
 ```
@@ -282,3 +282,34 @@ print("intercept:", model_size_2.intercept_)
 For the model looking at school size, removing the outlier causes even smaller of a difference.
 
 ### Extra Credit
+
+For the extra credit, I would like you to do the same multi linear regression analysis as above, but on a much more complicated dataset! Load in the `diamonds.csv` file we used in a previous assignment and compute a multi linear model to predict the price of each diamond. Then do each of the model fit checks above to verify your model is sound.
+
+**Hint:** You might need to transform some of the variables in the diamonds dataset first (e.g. use the log of a variable) in order to achieve linearity.
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import PredictionErrorDisplay
+from scipy.stats import probplot
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+df = pd.read_csv('./../../datasets/diamonds.csv')
+df.head()
+```
+
+```{python}
+sns.pairplot(df, vars=['carat', 'cut', 'color', 'price', 'table'])
+plt.show()
+```
+
+Let's use carat, depth, and table
+
+```{python}
+
+```
+
