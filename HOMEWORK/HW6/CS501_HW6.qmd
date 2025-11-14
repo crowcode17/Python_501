@@ -143,12 +143,6 @@ plt.show()
 
 ### Checking Model Fit
 
-Once you have fit your model, do some checks to make sure that a linear model is appropriate. 
-
-1. First examine the residuals you get from each of these models using the `PredictionErrorDisplay` function in scikit learn. 
-    
-    * Do they meet the criteria for linearity and uniformity that we discussed in class?
-
 **Percent Disadvantaged PED**
 
 ```{python}
@@ -167,11 +161,7 @@ size_PED.plot()
 plt.show()
 ```
 
-It's harder to tell here, but it doesn't look uniform.
-
-2. Next, check whether your residuals are normally distributed using the `probplot` imported above. Probplot takes in the residuals and compares them to a standard distribution (in this case, you want `norm` for the normal distribution). You can pass in `plt` for the plot argument, and then call `plt.show()` to view the plot. 
-
-    * Do all the residuals fall along a line in the Q-Q plot? Then they are normally distributed! Great!
+It's harder to tell here, but it doesn't look uniform, so this is probably not a very good fit.
 
 **Percent Disadvantaged Residuals:**
 
@@ -189,22 +179,16 @@ pp = probplot(size_residuals, dist='norm', plot=plt)
 plt.show()
 ```
 
-These points don't closesly follow the line, so they're probably not normally distributed.
-
-3. Finally, use the `variance_inflation_factor` function imported above to check if the two variables are collinear. Note this just takes in the two columns of the dataframe, `perc_disadvan` and `sizenumeric`, and you can pass in either 0 or 1 for the exogenous index since there are only two variables so it doesn't matter which one you choose. 
-    
-    * Is the resulting value less than 5? Then your variables are not collinear. Great!
+These points don't closesly follow the line, so they're not normally distributed.
 
 ```{python}
 vif = variance_inflation_factor(df[['perc_disadvan', 'size_num']], 0)
 print("VIF =", vif)
 ```
 
-The VIF is less than 5, so the size and percent disadvantaged variables are not collinear.
+The VIF is less than 5, so the size and percent disadvantaged variables are *not* collinear.
 
 ### Computing Multi Linear Regression
-
-Lastly, repeat the same steps you followed in the simple linear regression section above, but this time use both variables together! In this case the `x` input to the linear model is going to be two columns of the dataframe, `perc_disadvan` and `sizenumeric`. Similarly, in the lmplot function you will want to choose one of the variables to be encoded as `hue`.
 
 ```{python}
 # Do multiple linear regression
@@ -224,8 +208,6 @@ plt.show()
 ```
 
 ### The Outlier
-
-In all the plots up until this point there has been one noticeable outlier... Filter the data to find out which school is the outlier. Is this outlier influential for our models or not? Explain your reasoning.
 
 ```{python}
 # Filter to find the outlier
@@ -281,6 +263,8 @@ print("intercept:", model_size_2.intercept_)
 
 For the model looking at school size, removing the outlier causes even smaller of a difference.
 
+In both cases, this is because the outlier is in the Y direction.
+
 ### Extra Credit
 
 For the extra credit, I would like you to do the same multi linear regression analysis as above, but on a much more complicated dataset! Load in the `diamonds.csv` file we used in a previous assignment and compute a multi linear model to predict the price of each diamond. Then do each of the model fit checks above to verify your model is sound.
@@ -307,9 +291,4 @@ sns.pairplot(df, vars=['carat', 'cut', 'color', 'price', 'table'])
 plt.show()
 ```
 
-Let's use carat, depth, and table
-
-```{python}
-
-```
-
+(started this, didn't finish it)

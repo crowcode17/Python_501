@@ -28,15 +28,142 @@ Plan:
   - present
 
 
+## Setup
+
 ```{python}
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-df = pd.read_csv("healthcareSpending.csv")
-df.describe()
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import PredictionErrorDisplay
+from scipy.stats import probplot
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+```
 
-df['Group'].unique()
+## Cleaning and tidying
+
+Cleaning and tidying for the population data:
+
+```{python}
+pop = pd.read_csv("./datasets/census.csv")
+
+# we only want the state-level data
+pop = pop[pop['State or County Release'] == 'State']
+
+# rename "Description" to "State"
+pop['State'] = pop['Description']
+
+# drop unneccessary columns
+pop = pop.drop(columns=['IBRC_Geo_ID', 'Statefips', 'Countyfips', 'State or County Release', 'Description'])
+```
+
+Cleaning and tidying for the healthcare spending data:
+
+```{python}
+# import datasets
+healthSpend = pd.read_csv("./datasets/healthcareSpending.csv")
+
+# drop "code" column
+healthSpend = healthSpend.drop(columns=['Code'])
+print(healthSpend)
+
+# Pivot by year
+healthSpendLong = pd.melt(healthSpend, 
+                    id_vars=['Item', 'Group', 'Region_Number', 'Region_Name', 'State_Name', 'Average_Annual_Percent_Growth'], 
+                    var_name='Year', value_name='Spending')
+
+# Drop the "Y" and convert to int
+healthSpendLong['Year'] = (healthSpendLong['Year'].str.strip('Y')).astype('int')
+
+hs_all = healthSpendLong
+```
+
+Match populations up to states in 
+
+```{python}
+# don't keep estimates if a count is given
+pref = ['Count', 'Estimate']
+pop['Count or Estimate'] = pd.Categorical(pop['Count or Estimate'], categories=pref, ordered=True)
+pop_sorted = pop.sort_values(by=['State', 'Year', 'Count or Estimate'])
+
+pop = pop_sorted.drop_duplicates(subset=['State', 'Year'], keep='first')
+
+# confirm we don't have duplicates
+(pop.groupby(['State', 'Year'])['Count or Estimate'].count()).sort_values(ascending=False)
+
+
+full = pd.merge(hs_all, pop, left_on='State_Name', right_on='State')
 
 ```
 
+```{python}
+# Separate into Regions, states, and National 
+hs_us = healthSpendLong[healthSpendLong['Group'] == 'United States']
+hs_region = healthSpendLong[healthSpendLong['Group'] == 'Region']
+hs_state = healthSpendLong[healthSpendLong['Group'] == 'State']
+
+# check for missingness
+def missing_check(df, field):
+    total_rows = df.shape[0]
+    missing_count = df[df[field].isna()].shape[0]
+
+    print(f"missing in {field}: {missing_count} ({(missing_count/total_rows)*100:.2f}%)")
+
+print("United States")
+for col in hs_us.columns:
+    missing_check(hs_us, col)
+
+print("\n\nRegion")
+for col in hs_region.columns:
+    missing_check(hs_region, col)
+    
+print("\n\nState")
+for col in hs_state.columns:
+    missing_check(hs_state, col)
+
+# Since everything in State_Name is missing in the "United States" group, drop it
+hs_us.drop(columns='State_Name', inplace=True)
+hs_region.drop(columns='State_Name', inplace=True)
+```
+
+
+## EDA
+
+Pairplot for all data:
+
+```{python}
+sns.pairplot(hs_all, diag_kind='kde', hue='Group')
+plt.show()
+```
+
+Pairplot for United States:
+
+```{python}
+sns.pairplot(hs_us, diag_kind='kde')
+plt.show()
+```
+
+Pairplot for Region data:
+
+```{python}
+sns.pairplot(hs_region, diag_kind='kde', hue='Region_Name')
+plt.show()
+```
+
+Pairplot for State data:
+
+```{python}
+sns.pairplot(hs_state, diag_kind='kde', hue='Region_Name')
+plt.show()
+```
+
+United States Spending by Item
+
+```{python}
+sns.barplot(hs_us, x='Spending', y='Item')
+plt.show()
+```
 
