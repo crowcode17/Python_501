@@ -5,10 +5,9 @@
             - make classes based on existing data, predict classes for new data
         - **regression**
     - Unsupervised learning: **unlabbeled** data for pattern/structure recognition
-        - clustering
+        - clustering (get similar things to cluster together and dissimilar things to cluster apart)
         - association
         - dimensionality reduction (neural networks)
-    - get similar things to cluster together and dissimilar things to cluster apart
     - Classification and Regression
         - overfitting issue: may only be accurate for training data
         - we want to generalize to new situations

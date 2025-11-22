@@ -1,0 +1,268 @@
+---
+title: "midterm 2 study"
+date: last-modified
+author: "Hayden Coke"
+format:
+  html:
+    embed-resources: true
+jupyter: python3
+---
+
+```{=html}
+<style>
+.cell-output {
+  border: 3px solid darkorchid;
+  border-radius: 5px;
+  padding: 5px;
+}
+</style>
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+```
+
+
+# Dataframes
+
+## Slicing
+by position: .iloc[index]
+by labels: .loc[label] or df['label']
+by values: boolean masking e.g. df[mask]
+
+```{python}
+arr = np.arange(100).reshape(25,4)
+df = pd.DataFrame(arr,columns=['Var0','Var1','Var2','Var3'])
+
+df
+```
+
+## Groupby
+
+three parts/steps
+variable(s) to group by
+variable(s) to aggregate on
+function(s) to use for aggregation
+
+
+# Functions and loops
+
+## Big O Notation
+
+```{python}
+n = 500
+x = range(0,n)
+
+# O(1)
+x[1] #this only takes one step to complete
+x[2]
+x[3]
+
+# O(n)
+count = 0
+for i in x:
+    count = count + 1
+    print(i)
+# this takes 500 steps to complete, the same number of steps as the data you have.
+count
+
+# O(n*log(n))
+
+# merge sort and quick sort are examples of n log(n) 
+
+# O(n^2)
+count = 0
+for i in x:
+    for j in x:
+        count = count + 1
+
+print(count)
+# this takes n times n steps to complete for n^2
+```
+
+## List Comprehension
+
+```{python}
+temps = [23.5, 25.1, 22.8, 24.9, 26.2]
+high_temps = [t for t in temps if t > 25] # get temps greater than 25
+
+temps_double = [t * 2 for t in temps]
+temps_double
+```
+
+## Lambda
+
+```{python}
+# lambda function - this variable IS a function
+# parameter is x, return is x**2
+square = lambda x, y: x + y
+print(square(2, 3))
+
+# lambda with MAP
+# apply a function to a list
+# map takes a function (like lambda) and applies it to a list/dataframe/whatever
+data = [1,2,3,4,5]
+squared = list(map(lambda x: x**2, data))
+print(squared)
+
+# another example of map (not using lambda)
+square_root = list(map(np.sqrt, data)) # converts to np.floats 
+print(square_root) 
+
+# iterative dictionary lookup
+people = [{'name': 'Alice', 'age': 30},
+            {'name': 'Bob', 'age': 25}]
+
+# sort using a lambda
+sorted_people = sorted(people, key=lambda p: p['age']) # default ascending
+
+print(sorted_people)
+```
+
+## Format of map and apply
+
+Map
+    DataFrame.map(func, na_action={None, ‘ignore’})
+    Apply a function to a Dataframe elementwise
+
+    `df.map(lambda x: f"{x:.2f}")`
+    `df.map(round, ndigits=1)`
+
+Apply
+    DataFrame.apply(func, axis=0)
+
+    Apply a function along an axis of the DataFrame.
+
+    Objects passed to the function are Series objects whose index is either the DataFrame’s **index (axis=0)** or the DataFrame’s **columns (axis=1)**
+
+    `df.apply(np.sqrt, axis=0)` in this case the same as np.sqrt(df)
+
+# Tidy Data
+
+## Pivots
+
+pivot from wide to long using `pd.melt()`
+
+`pd.melt(df, id_vars=[unique columns], var_name='new column name from the stuff that was in the header', value_name='new column values')`
+
+
+## Joins
+
+`DataFrame.merge(right, how='inner', on=None, left_on=None, right_on=None, left_index=False, right_index=False)`
+
+how{‘left’, ‘right’, ‘outer’, ‘inner’, ‘cross’}, default ‘inner’
+
+# Data Bias
+
+## Types of bias:
+
+1. **Undercoverage bias / coverage error**
+    - some groups are left out of the population
+    - *convenience sampling*
+2. **Nonresponse bias / nonresponse error**
+    - lack of response due to refusal or inability to respond
+    - *voluntary response* is non-random: only people who choose to answer a survey are included
+3. **Response bias / measurement error**
+    - individual answers but gives the wrong answer
+    - *wording of the question*: can cause inaccurate responses if the question is misleading or leading towards a particular answer
+
+## Types of missingness:
+
+1. Missing Completely At Random (MCAR)
+    - The probability of missing is the same for all units
+    - no specific pattern
+    - what to do: throw out observations with missing data
+2. Missing At Random (MAR)
+    - The probability of missing might be the same within a subgroup but isn't the same across all subgroups 
+    - there is a pattern to the missingness
+    - ex: survey data
+3. Missing depending on unobserved predictors (MNAR)
+    - May have a latent unobserved variable that informs the missingness 
+    - ex: people with college degrees may be less likely to discuss income on a survey, college degree is predictive of income, and not all subjects report education level
+    - can be due to a variable that was not collected
+4. Missing depending on the value itself (MNAR)
+    - certain values are beyond the capability of whatever we're using to measure
+    - ex: a weather instrument might not report anything if it records a temperature greater than the capabilities of the instrument.
+
+# Machine Learning
+
+## Supervised vs. Unsupervised learning
+
+Supervised learning: **pre-categorized** data for predictions and predictive models
+    - classification (make classes based on existing data, predict classes for new data)
+    - **regression**
+
+Unsupervised Learning: **unlabeled** data for pattern/structure recognition
+    - clustering (get similar things to cluster together and dissimilar things to cluster apart)
+    - association
+    - dimensionality reduction (neural networks)
+
+## Classification vs. Regression
+
+Classification: putting points in categories, creating classes
+
+Regression: find "line of best fit" for some data
+
+for both:
+    - overfitting issue: may only be accurate for training data
+    - we want to generalize for new situations
+
+## Definition of linear regression
+
+Linear Regression: finds the line that minimizes the sum of the squared residuals, or line of best fit
+
+## Tests for linearity
+
+`PredictionErrorDisplay(y_true, y_pred)`
+name_of_pred_error_object.plot()
+plt.show()
+
+```
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import PredictionErrorDisplay
+from scipy.stats import probplot
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+# make a model
+# note: x must be a numpy array or tricked into being a dataframe with a single column, NOT a series
+model = LinearRegression().fit(x, y)
+
+# model info
+print("adjusted R^2 score:", model.score(x, y))
+print("slope (r):", model.coef_)
+print("intercept:", model.intercept_)
+
+# get predicted values using your model
+y_hat = model.predict(x)
+residuals = y - y_hat
+
+# plot residuals on a scatterplot
+sns.scatterplot(residuals)
+plt.show()
+```
+
+Diagnotics:
+
+1. Residual Plot: checks linearity and equal variance.
+    looking for homoscedasticity / mean of zero (THE TUBE). if plotting residuals as a histogram, look for a normal distribution 
+2. QQ Plot: checks for normally-distributed errors.
+    look for points that hug the line
+3. VIF (variance inflation factor): checks for independent observations.
+    look for a value under 5: if the value is under 5, the variables are not collinear
+
+Other indicators of possible multicollinearity:
+    - The regression coefficients change drastically when you add or omit a variable from the model
+    - The sign of the regression coefficient is counter-intuitive
+    - Large std errors for regression coefficients, relative to their order of magnitude
+
+## Assumptions of linear regression
+
+LINE
+    - Linearity (rough line-like relationship between x and y)
+    - Independent observations (x values don't depend on eachother)
+    - Normally distributed residuals (errors)
+    - Equal variance for all X (homoscedasticity)
+
