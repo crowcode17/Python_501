@@ -17,15 +17,15 @@ jupyter: python3
 }
 </style>
 ```
+Questions:
 
-Plan:
-  - drop 'Code' column
-  - pivot by the year stuff
-    - chop off the "Y" and convert to int
-  - maybe separate out Group
-  - examine missingness 
-  - basic EDA
-  - present
+- How has healthcare spending per capita changed from 1980-2014?
+- Why does DC have such a high spending per capita?
+- Why has healthcare spending per capita risen so much since 2000?
+- Why do some states spend more per capita than others on hospital care?
+- How does access to healthcare impact healthcare spending?
+
+*Does our data represent insurance, state, or individual spending?* 
 
 
 ## Setup
@@ -41,6 +41,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import PredictionErrorDisplay
 from scipy.stats import probplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+pop = pd.read_csv("./datasets/census.csv")
+healthSpend = pd.read_csv("./datasets/healthcareSpending.csv")
 ```
 
 ## Cleaning and tidying
@@ -48,27 +51,28 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 Cleaning and tidying for the population data:
 
 ```{python}
-pop = pd.read_csv("./datasets/census.csv")
-
 # we only want the state-level data
 pop = pop[pop['State or County Release'] == 'State']
 
 # rename "Description" to "State"
 pop['State'] = pop['Description']
 
+# change "U.S." to "United States"
+pop.loc[pop['State'] == 'U.S.', 'State'] = 'United States'
+
 # drop unneccessary columns
 pop = pop.drop(columns=['IBRC_Geo_ID', 'Statefips', 'Countyfips', 'State or County Release', 'Description'])
+
+# split into US population and state population
+pop_us = pop[pop['State'] == 'United States']
+pop_states = pop[pop['State'] != 'United States']
 ```
 
 Cleaning and tidying for the healthcare spending data:
 
 ```{python}
-# import datasets
-healthSpend = pd.read_csv("./datasets/healthcareSpending.csv")
-
 # drop "code" column
 healthSpend = healthSpend.drop(columns=['Code'])
-print(healthSpend)
 
 # Pivot by year
 healthSpendLong = pd.melt(healthSpend, 
@@ -77,11 +81,21 @@ healthSpendLong = pd.melt(healthSpend,
 
 # Drop the "Y" and convert to int
 healthSpendLong['Year'] = (healthSpendLong['Year'].str.strip('Y')).astype('int')
-
-hs_all = healthSpendLong
 ```
 
-Match populations up to states in 
+```{python}
+# Separate into Regions, states, and National 
+hs_us = healthSpendLong[healthSpendLong['Group'] == 'United States']
+hs_region = healthSpendLong[healthSpendLong['Group'] == 'Region']
+hs_state = healthSpendLong[healthSpendLong['Group'] == 'State']
+
+# Since everything in State_Name is missing in the "United States" group, drop it
+hs_us.drop(columns='State_Name', inplace=True)
+hs_region.drop(columns='State_Name', inplace=True)
+hs_state.drop(columns='Group', inplace=True)
+```
+
+Match populations up to states in healthcare spending
 
 ```{python}
 # don't keep estimates if a count is given
@@ -94,76 +108,111 @@ pop = pop_sorted.drop_duplicates(subset=['State', 'Year'], keep='first')
 # confirm we don't have duplicates
 (pop.groupby(['State', 'Year'])['Count or Estimate'].count()).sort_values(ascending=False)
 
+# full = pd.merge(hs_all, pop, left_on='State_Name', right_on='State')
 
-full = pd.merge(hs_all, pop, left_on='State_Name', right_on='State')
+# merge state healthcare spending with population data
+hs_state_pops = pd.merge(hs_state, pop, left_on=['State_Name', 'Year'], right_on=['State','Year'])
+hs_state_pops.drop(columns=['State_Name', 'Count or Estimate'], inplace=True)
 
+hs_us_pops = pd.merge(hs_us, pop_us, left_on='Year', right_on='Year')
+hs_us_pops.drop(columns=['Count or Estimate', 'Region_Number', 'State', 'Group'], inplace=True)
 ```
+
+Per-capita analysis
 
 ```{python}
-# Separate into Regions, states, and National 
-hs_us = healthSpendLong[healthSpendLong['Group'] == 'United States']
-hs_region = healthSpendLong[healthSpendLong['Group'] == 'Region']
-hs_state = healthSpendLong[healthSpendLong['Group'] == 'State']
-
-# check for missingness
-def missing_check(df, field):
-    total_rows = df.shape[0]
-    missing_count = df[df[field].isna()].shape[0]
-
-    print(f"missing in {field}: {missing_count} ({(missing_count/total_rows)*100:.2f}%)")
-
-print("United States")
-for col in hs_us.columns:
-    missing_check(hs_us, col)
-
-print("\n\nRegion")
-for col in hs_region.columns:
-    missing_check(hs_region, col)
-    
-print("\n\nState")
-for col in hs_state.columns:
-    missing_check(hs_state, col)
-
-# Since everything in State_Name is missing in the "United States" group, drop it
-hs_us.drop(columns='State_Name', inplace=True)
-hs_region.drop(columns='State_Name', inplace=True)
+hs_state_pops['perCapSpend'] = hs_state_pops['Spending']/hs_state_pops['Population']
+hs_us_pops['perCapSpend'] = hs_us_pops['Spending']/hs_us_pops['Population']
 ```
-
 
 ## EDA
 
-Pairplot for all data:
-
 ```{python}
-sns.pairplot(hs_all, diag_kind='kde', hue='Group')
+# pairplots
+sns.pairplot(hs_state_pops, diag_kind='kde', hue='State')
+plt.show()
+
+sns.pairplot(hs_us_pops, diag_kind='kde')
 plt.show()
 ```
 
-Pairplot for United States:
-
+Spending and Year
 ```{python}
-sns.pairplot(hs_us, diag_kind='kde')
+# spending for each state over time
+sns.lineplot(hs_state_pops, x='Year', y='Spending', hue='Region_Number')
+plt.show()
+
+# spending over time
+sns.lineplot(hs_state_pops, x='Year', y='Spending')
+plt.show()
+
+# spending per capita by item
+sns.lineplot(hs_state_pops, x='Year', y='perCapSpend', hue='Item')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# spending by item
+sns.lineplot(hs_state_pops, x='Year', y='Spending', hue='Item')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.show()
 ```
 
-Pairplot for Region data:
+Average Annual Percent Growth
 
 ```{python}
-sns.pairplot(hs_region, diag_kind='kde', hue='Region_Name')
+sns.lineplot(hs_state_pops, x='Year', y='Average_Annual_Percent_Growth')
+plt.show()
+
+sns.lineplot(hs_state_pops, x='Year', y='Average_Annual_Percent_Growth', hue='Item')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+sns.lineplot(hs_state_pops, x='Year', y='Average_Annual_Percent_Growth', hue='Region_Name')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.show()
 ```
 
-Pairplot for State data:
+Spending and Population
 
 ```{python}
-sns.pairplot(hs_state, diag_kind='kde', hue='Region_Name')
+sns.scatterplot(hs_state_pops, x='Population', y='Spending', hue='Year')
+```
+
+Spending Per Capita 
+```{python}
+fig, ax = plt.subplots(figsize=(20, 10))
+sns.barplot(hs_state_pops, y='State', x='Spending', order=hs_state_pops.sort_values('Spending').State, ax=ax)
+plt.show()
+
+fig, ax = plt.subplots(figsize=(20, 10))
+sns.barplot(hs_state_pops, y='State', x='perCapSpend', order=hs_state_pops.sort_values('perCapSpend').State, ax=ax)
 plt.show()
 ```
 
-United States Spending by Item
+Spending by Item
 
 ```{python}
-sns.barplot(hs_us, x='Spending', y='Item')
+fig, ax = plt.subplots(figsize=(20, 10))
+sns.barplot(hs_state_pops, y='Item', x='Spending', order=hs_state_pops.sort_values('Spending').Item, ax=ax)
+plt.show()
+
+fig, ax = plt.subplots(figsize=(20, 10))
+sns.barplot(hs_state_pops, y='Item', x='perCapSpend', order=hs_state_pops.sort_values('perCapSpend').Item, ax=ax)
+plt.show()
+
+sns.catplot(hs_state_pops, y="Item", x="perCapSpend", kind="bar", col="State", col_wrap=4)
+plt.show()
+
+sns.catplot(hs_state_pops, y="Item", x="perCapSpend", kind="bar", col="Region_Name", col_wrap=4)
 plt.show()
 ```
 
+What's going on with DC?
+
+Maybe compare to the low spenders? Utah/Idaho
+
+```{python}
+dc_utah = hs_state_pops[hs_state_pops['State'].isin(['Utah', 'District of Columbia'])]
+sns.catplot(dc_utah, y="Item", x="perCapSpend", kind="bar", col="State")
+plt.show()
+```
