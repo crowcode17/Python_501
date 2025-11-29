@@ -37,17 +37,8 @@ Questions:
 
 Main Question: **How has the pattern of healthcare spending by state changed over time?**
 
-good? 
 - How has healthcare spending per capita changed from 1980-2014?
-- Which states/regions spend the most on healthcare?
-- Does our predicted spending from our model match real spending?
 - How much do individual states differ from the national average?
-
-maybe not:
-- Why does DC have such a high spending per capita?
-- Why has healthcare spending per capita risen so much since 2000?
-- How does access to healthcare impact healthcare spending?
-
 
 ## Setup
 
@@ -76,19 +67,19 @@ plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.show()
 
 # spending for each state over time
-sns.lineplot(df_states, x='Year', y='perCapSpend', hue='Region_Name')
+sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
 plt.show()
 
 # spending over time
-sns.lineplot(df_states, x='Year', y='perCapSpend')
+sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted')
 plt.show()
 
 # linear regression
-sns.lmplot(df_states, x='Year', y='perCapSpend', hue='Region_Name')
+sns.lmplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
 plt.show()
 
 x = df_states['Year'].values.reshape((-1, 1))
-y = df_states['perCapSpend']
+y = df_states['perCapSpendAdjusted']
 reg = LinearRegression().fit(x, y)
 
 # Print the results
