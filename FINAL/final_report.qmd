@@ -1,0 +1,99 @@
+---
+title: "Python Final Report"
+date: last-modified
+author: "Hayden Coke and Bekah Peterson"
+format:
+  html:
+    embed-resources: true
+jupyter: python3
+---
+
+## Introduction
+
+why were we interested in this data?
+
+## Background
+
+here's the information about the stuff
+
+## Methods
+
+i'll do this (hayden)
+
+## Results
+
+
+## Conclusion
+
+money go up
+
+### References
+
+
+---
+
+
+Questions:
+
+Main Question: **How has the pattern of healthcare spending by state changed over time?**
+
+good? 
+- How has healthcare spending per capita changed from 1980-2014?
+- Which states/regions spend the most on healthcare?
+- Does our predicted spending from our model match real spending?
+- How much do individual states differ from the national average?
+
+maybe not:
+- Why does DC have such a high spending per capita?
+- Why has healthcare spending per capita risen so much since 2000?
+- How does access to healthcare impact healthcare spending?
+
+
+## Setup
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import cpi 
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import PredictionErrorDisplay
+from scipy.stats import probplot
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+df_states = pd.read_csv("./datasets/healthcarespending_states.csv")
+df_us = pd.read_csv("./datasets/healthcarespending_us.csv")
+```
+
+## ok let's do eda again
+
+```{python}
+# spending by item over time
+sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Item')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.show()
+
+# spending for each state over time
+sns.lineplot(df_states, x='Year', y='perCapSpend', hue='Region_Name')
+plt.show()
+
+# spending over time
+sns.lineplot(df_states, x='Year', y='perCapSpend')
+plt.show()
+
+# linear regression
+sns.lmplot(df_states, x='Year', y='perCapSpend', hue='Region_Name')
+plt.show()
+
+x = df_states['Year'].values.reshape((-1, 1))
+y = df_states['perCapSpend']
+reg = LinearRegression().fit(x, y)
+
+# Print the results
+print("score:", reg.score(x, y))
+print("coef:", reg.coef_)
+print("intercept:", reg.intercept_)
+```
+

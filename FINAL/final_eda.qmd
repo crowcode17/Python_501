@@ -1,5 +1,5 @@
 ---
-title: "Python Final"
+title: "Python Final EDA"
 date: last-modified
 author: "Hayden Coke and Bekah Peterson"
 format:
@@ -17,6 +17,7 @@ jupyter: python3
 }
 </style>
 ```
+
 Questions:
 
 - How has healthcare spending per capita changed from 1980-2014?
