@@ -12,13 +12,15 @@ jupyter: python3
 
 why were we interested in this data?
 
+This report will seek to answer the question: How has the pattern of healthcare spending by state changed over time? 
+
 ## Background
 
 here's the information about the stuff
 
 ## Methods
 
-i'll do this (hayden)
+
 
 ## Results
 
@@ -39,6 +41,7 @@ Main Question: **How has the pattern of healthcare spending by state changed ove
 
 - How has healthcare spending per capita changed from 1980-2014?
 - How much do individual states differ from the national average?
+- Which spending items have changed the most?
 
 ## Setup
 
@@ -75,7 +78,40 @@ sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted')
 plt.show()
 
 # linear regression
-sns.lmplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
+sns.lmplot(df_states, x='Year', y='perCapSpendAdjusted', hue='State')
+plt.show()
+
+# wrapped by state
+sns.lmplot(df_states, x='Year', y='perCapSpendAdjusted', col='State', col_wrap=3)
+plt.show()
+
+g = sns.FacetGrid(df_states, col='State', col_wrap=3)
+g.map(sns.scatterplot, 'Year', 'perCapSpendAdjusted')
+
+# it's hard to look at the whole thing since there are so many states
+# compare scores/coefficients for each?
+
+
+
+# x = df_states[df_states['State'] == state]['Year'].values.reshape((-1, 1))
+# y = df_states['perCapSpendAdjusted']
+# reg = LinearRegression().fit(x, y)
+
+# # Print the results
+# print("score:", reg.score(x, y))
+# print("coef:", reg.coef_)
+# print("intercept:", reg.intercept_)
+
+# checking model fit
+```
+
+
+
+```{python}
+# How has healthcare spending per capita changed from 1980-2014?
+# percapspend_year_means = df_states.groupby('Year', as_index=False)['perCapSpendAdjusted'].mean()
+
+sns.lmplot(df_us, x = 'Year', y = 'perCapSpendAdjusted')
 plt.show()
 
 x = df_states['Year'].values.reshape((-1, 1))
@@ -86,5 +122,100 @@ reg = LinearRegression().fit(x, y)
 print("score:", reg.score(x, y))
 print("coef:", reg.coef_)
 print("intercept:", reg.intercept_)
+
+```
+
+
+```{python}
+# How much do individual states differ from the national average?
+
+# national average for spending per capita on all items across time
+# df_us is for totals, we need averages
+# spend_avgs = df_states.groupby('Year')['SpendingAdjusted'].mean()
+
+cap_avgs = df_states.groupby('Year', as_index=False)['perCapSpendAdjusted'].mean()
+
+sns.lmplot(cap_avgs, x='Year', y='perCapSpendAdjusted')
+plt.ylim(0,0.02)
+plt.show()
+
+utah_dc = df_states[df_states['State'].isin(['Utah', 'District of Columbia'])]
+
+# which state is the highest above average?
+sns.lmplot(utah_dc, x='Year', y='perCapSpendAdjusted', hue='State')
+plt.ylim(0,0.02)
+plt.show()
+
+# which state is the lowest below average?
+# Utah
+
+
+```
+
+
+
+```{python}
+# Which spending items have changed the most?
+
+
+```
+
+## Regression by item
+```{python}
+#This time just hospital spending
+hospital_df=df_states[df_states['Item']=='Hospital Care (Millions of Dollars)']
+x_hospital = hospital_df['Year'].values.reshape((-1, 1))
+y_hospital = hospital_df['perCapSpendAdjusted']
+
+sns.lmplot(hospital_df, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
+plt.title("Hospital Care")
+
+print("Hospital Care")
+regHosp=LinearRegression().fit(x_hospital, y_hospital)
+print("score:", regHosp.score(x_hospital, y_hospital))
+print("coef:", regHosp.coef_)
+print("intercept:", regHosp.intercept_)
+
+#This time just Physician spending
+clinic_df=df_states[df_states['Item']=='Physician & Clinical Services (Millions of Dollars)']
+x_clinic = clinic_df['Year'].values.reshape((-1, 1))
+y_clinic = clinic_df['perCapSpendAdjusted']
+
+sns.lmplot(clinic_df, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
+plt.title("Physician & Clinic Services")
+
+print("Physician & Clinic Services")
+regCli=LinearRegression().fit(x_clinic, y_clinic)
+print("score:", regCli.score(x_clinic, y_clinic))
+print("coef:", regCli.coef_)
+print("intercept:", regCli.intercept_)
+
+#This time just dental spending
+dental_df=df_states[df_states['Item']=='Dental Services (Millions of Dollars)']
+x_dent = dental_df['Year'].values.reshape((-1, 1))
+y_dent = dental_df['perCapSpendAdjusted']
+
+sns.lmplot(dental_df, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
+plt.title("Dental Services Spending")
+
+print("Dental Care")
+regDent=LinearRegression().fit(x_dent, y_dent)
+print("score:", regDent.score(x_dent, y_dent))
+print("coef:", regDent.coef_)
+print("intercept:", regDent.intercept_)
+
+#This time just Personal Healthcare spending
+personal_df=df_states[df_states['Item']=='Personal Health Care (Millions of Dollars)']
+x_personal = personal_df['Year'].values.reshape((-1, 1))
+y_personal = personal_df['perCapSpendAdjusted']
+
+sns.lmplot(personal_df, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
+plt.title("Personal Care Spending")
+
+print("Personal Care")
+regPers=LinearRegression().fit(x_dent, y_dent)
+print("score:", regPers.score(x_personal, y_personal))
+print("coef:", regPers.coef_)
+print("intercept:", regPers.intercept_)
 ```
 
