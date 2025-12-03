@@ -36,6 +36,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import cpi
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
@@ -52,11 +53,24 @@ healthSpend = pd.read_csv("./datasets/healthcareSpending.csv")
 Cleaning and tidying for the population data:
 
 ```{python}
-# we only want the state-level data
-pop = pop[pop['State or County Release'] == 'State']
+states = ['Alabama','Alaska','Arizona','Arkansas',
+          'California','Colorado','Connecticut','Delaware',
+          'District of Columbia','Florida','Georgia','Hawaii',
+          'Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky',
+          'Louisiana','Maine','Maryland','Massachusetts','Michigan',
+          'Minnesota','Mississippi','Missouri','Montana','Nebraska',
+          'Nevada','New Hampshire','New Jersey','New Mexico',
+          'New York','North Carolina','North Dakota','Ohio',
+          'Oklahoma','Oregon','Pennsylvania','Rhode Island',
+          'South Carolina','South Dakota','Tennessee','Texas',
+          'Utah','Vermont','Virginia','Washington','West Virginia',
+          'Wisconsin','Wyoming']
 
 # rename "Description" to "State"
 pop['State'] = pop['Description']
+
+# we only want the state-level data
+pop = pop[pop['State'].isin(states)]
 
 # change "U.S." to "United States"
 pop.loc[pop['State'] == 'U.S.', 'State'] = 'United States'
@@ -87,12 +101,10 @@ healthSpendLong['Year'] = (healthSpendLong['Year'].str.strip('Y')).astype('int')
 ```{python}
 # Separate into Regions, states, and National 
 hs_us = healthSpendLong[healthSpendLong['Group'] == 'United States']
-hs_region = healthSpendLong[healthSpendLong['Group'] == 'Region']
 hs_state = healthSpendLong[healthSpendLong['Group'] == 'State']
 
 # Since everything in State_Name is missing in the "United States" group, drop it
 hs_us.drop(columns='State_Name', inplace=True)
-hs_region.drop(columns='State_Name', inplace=True)
 hs_state.drop(columns='Group', inplace=True)
 ```
 
@@ -117,14 +129,17 @@ hs_state_pops.drop(columns=['State_Name', 'Count or Estimate'], inplace=True)
 
 hs_us_pops = pd.merge(hs_us, pop_us, left_on='Year', right_on='Year')
 hs_us_pops.drop(columns=['Count or Estimate', 'Region_Number', 'State', 'Group'], inplace=True)
+
+# Add inflation-adjusted spending column
+hs_state_pops["SpendAdjust"] = hs_state_pops.apply(
+    lambda x:cpi.inflate(x.Spending, x.Year), axis=1
+)
+
+# Per-capita analysis
+hs_state_pops['perCapSpendAdjusted'] = hs_state_pops['SpendAdjust']/hs_state_pops['Population']
+
 ```
 
-Per-capita analysis
-
-```{python}
-hs_state_pops['perCapSpend'] = hs_state_pops['Spending']/hs_state_pops['Population']
-hs_us_pops['perCapSpend'] = hs_us_pops['Spending']/hs_us_pops['Population']
-```
 
 ## EDA
 
