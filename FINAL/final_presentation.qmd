@@ -67,10 +67,12 @@ df_states = pd.read_csv("./datasets/healthcare_spending_states.csv")
 ## ok let's do eda again
 
 ```{python}
-# # spending by item over time
-# sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Item')
-# plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
-# plt.show()
+# spending by item over time
+sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Item')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+plt.xlabel("Year")
+plt.ylabel("Spending Per Capita")
+plt.show()
 
 # # spending for each state over time
 # sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Region_Name')
