@@ -26,14 +26,14 @@ Even though there were a lot of unanswered questions, just saying there could be
 
 Healthcare spending is a growing concern for most Americans. The US spends more than twice as much per capita on health care as other developed countries (Pahlka, [Re]Coding America, p. 4). One in ten Americans has at least $250 in medical debt. The majority of Americans with $10,000 or more in debt do not think they will ever be able to pay it off. Families of middle or lower economic status are especially burdened by medical debt. (https://pmc.ncbi.nlm.nih.gov/articles/PMC11918610/)
 
-This report will seek to answer the question: How has the pattern of healthcare spending by state  changed over time? 
-
+This report will seek to answer the question: How has healthcare spending by state and region changed over time? 
 
 
 ## Methods
 
-The dataset that we looked at is medical spending from 1980-2014. The data was further broken down into individual state spending and spending by item category. To better compare states, spending was divided by population to find the per capita spending. The population dataset was given to us by Dr. Gore and encompasses the range of time in our original dataset. We also adjusted our data for inflation to better compare across time using the consumer price index. 
+To answer this question, we examined a dataset of healthcare spending from 1980 to 2014, which reported individual state spending and spending by item category. Dr. Gore provided us with a census dataset which we used to match states and years to their corresponding populations. To account for inflation, we adjusted the spending amounts in the original dataset using the python package Cpi by Palewire, which uses the Consumer Price Index. After adjusting for inflation, we calculated spending per capita by dividing the spending by the state population. 
 
+Healthcare items reported by this dataset include: Hospital Care; Physician & Clinical Services; Other Professional Services; Dental Services; Home Health Care; Prescription Drugs; Durable Medical Products; Other Non-durable Medical Products; Nursing Home Care; and Other Health, Residential, and Personal Care. 
 
 ## Results
 
@@ -42,6 +42,11 @@ The dataset that we looked at is medical spending from 1980-2014. The data was f
 ## Conclusion
 
 ## References
+
+https://palewi.re/docs/cpi/#id6
+
+https://www.bls.gov/cpi/
+
 
 ## Appendix
 
@@ -57,27 +62,68 @@ from sklearn.metrics import PredictionErrorDisplay
 from scipy.stats import probplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-df_states = pd.read_csv("./datasets/healthcare_spending_states.csv")
+# cpi.update()
+df_all = pd.read_csv("./datasets/healthcare_spending_states.csv")
+df_personal = df_all[df_all['Item'] == 'Personal Health Care (Millions of Dollars)']
+df_items = df_all[df_all['Item'] != 'Personal Health Care (Millions of Dollars)']
 ```
 
 ```{python}
 # spending by item over time
-sns.lineplot(df_states, x='Year', y='perCapSpendAdjusted', hue='Item')
+sns.lineplot(df_items, x='Year', y='SpendAdjust', hue='Item')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.xlabel("Year")
-plt.ylabel("Millions of Dollars Per Person Per Capita")
-plt.title("")
+plt.ylabel("Millions of Dollars")
+# plt.title("Spending in Millions of Dollars Per Person Per Capita by Item(1980-2014)")
 plt.show()
 ```
 
+**Fig 1.** Spending in Millions of Dollars by Item (1980-2014). 
 
 ```{python}
-# How has healthcare spending per capita changed from 1980-2014?
-sns.lmplot(df_states, x = 'Year', y = 'perCapSpendAdjusted')
+# spending per capita by region (exluding DC)
+df_personal_noDC = df_personal[df_personal['State'] != 'District of Columbia']
+sns.lineplot(df_personal_noDC, x = 'Year', y = 'perCapSpendAdjusted', hue='Region_Name')
+plt.xlabel("Year")
+plt.ylabel("Millions of Dollars Per Person Per Capita")
+plt.show()
+```
+
+**Fig 2.** Spending in Millions of Dollars Per Person Per Capita by Region (1980-2014). 
+
+
+```{python}
+df_2014 = df_personal[df_personal['Year'] == 2014]
+df_1980 = df_personal[df_personal['Year'] == 1980]
+
+spending_2014 = df_2014.groupby('State', as_index=False)['perCapSpendAdjusted'].sum()
+spending_2014.rename(columns={'perCapSpendAdjusted': 'Spending Per Capita in 2014'}, inplace=True)
+
+spending_1980 = df_1980.groupby('State', as_index=False)['perCapSpendAdjusted'].sum()
+spending_1980.rename(columns={'perCapSpendAdjusted': 'Spending Per Capita in 1980'}, inplace=True)
+
+delta = spending_1980.merge(spending_2014, on='State', how='left')
+delta['Percent Change'] = (delta['Spending Per Capita in 2014'] - delta['Spending Per Capita in 1980']) / delta['Spending Per Capita in 1980'] * 100
+
+delta.sort_values(by='Percent Change', inplace=True, ascending=False, ignore_index=True)
+
+delta
+
+```
+
+**Table 1.** Percent growth on healthcare spending (measured in millions of dollars per person per capita) among states from 1980 to 2014. 
+
+
+
+
+
+
+```{python}
+sns.lmplot(df_personal, x = 'Year', y = 'perCapSpendAdjusted', hue='Region_Name')
 plt.show()
 
-x = df_states['Year'].values.reshape((-1, 1))
-y = df_states['perCapSpendAdjusted']
+x = df_personal['Year'].values.reshape((-1, 1))
+y = df_personal['perCapSpendAdjusted']
 reg = LinearRegression().fit(x, y)
 
 print("score:", reg.score(x, y))
@@ -85,18 +131,17 @@ print("coef:", reg.coef_)
 print("intercept:", reg.intercept_)
 ```
 
-
 ```{python}
 # How much do individual states differ from the national average?
 
 # national average for spending per capita on all items across time
-cap_avgs = df_states.groupby('Year', as_index=False)['perCapSpendAdjusted'].mean()
+cap_avgs = df_personal.groupby('Year', as_index=False)['perCapSpendAdjusted'].mean()
 
 sns.lmplot(cap_avgs, x='Year', y='perCapSpendAdjusted')
 plt.ylim(0,0.02)
 plt.show()
 
-dc_only = df_states[df_states['State'] == 'District of Columbia']
+dc_only = df_personal[df_personal['State'] == 'District of Columbia']
 
 # which state is the highest above average?
 sns.lmplot(dc_only, x='Year', y='perCapSpendAdjusted')
@@ -121,7 +166,7 @@ states = ['Alabama','Alaska','Arizona','Arkansas',
 results = []
 
 for state in states:
-  df_state = df_states[df_states['State'] == state]
+  df_state = df_personal[df_personal['State'] == state]
 
   x = df_state['Year'].values.reshape((-1, 1))
   y = df_state['perCapSpendAdjusted']
