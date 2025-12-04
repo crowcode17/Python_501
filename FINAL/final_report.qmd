@@ -7,6 +7,7 @@ format:
     embed-resources: true
 execute: 
   echo: false
+  warning: false
 jupyter: python3
 ---
 
@@ -15,6 +16,17 @@ Showing multiple time series plots as a single group of scatter plot points does
 
 Even though there were a lot of unanswered questions, just saying there could be unknown reasons without offering any speculation is unsatisfying. What additional info would you need to answer those questions? Where would be the first places you could look?
 
+RUBRIC:
+● General background on the topic
+● Information about the source of any additional datasets
+● Detailed description of any variables used in your analysis, including any that you
+created/derived from other variables
+● Your research question(s), and why they are important
+● Appropriate figures illustrating your analysis and results
+● At least one machine learning model predicting a variable of interest (this may be a simple
+multi-linear regression or something more complicated if you prefer) along with any
+validation tests or checks required for using that model
+● Your conclusions, including supporting evidence and caveats if appropriate
 
 # Patterns in Healthcare Spending from 1980 to 2014
 
@@ -59,11 +71,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import PredictionErrorDisplay
+from sklearn.metrics import PredictionErrorDisplay, mean_squared_error, r2_score
 from scipy.stats import probplot
-from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
 
 df_all = pd.read_csv("./datasets/healthcare_spending_states.csv")
 df_personal = df_all[df_all['Item'] == 'Personal Health Care (Millions of Dollars)']
@@ -76,7 +89,6 @@ sns.lineplot(df_items, x='Year', y='SpendAdjust', hue='Item')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.xlabel("Year")
 plt.ylabel("Millions of Dollars")
-# plt.title("Spending by Item in Millions of Dollars (1980-2014)")
 plt.show()
 ```
 
@@ -109,79 +121,66 @@ delta['Percent Change'] = (delta['Spending Per Capita in 2014'] - delta['Spendin
 
 delta.sort_values(by='Percent Change', inplace=True, ascending=False, ignore_index=True)
 
-delta
+pd.options.display.float_format = '{:,.5f}'.format
+delta['Percent Change'] = delta['Percent Change'].apply(lambda x: '{:.2f}%'.format(x))
 
+display(delta)
 ```
 
 **Table 1.** Percent growth on healthcare spending (measured in millions of dollars per capita) among states from 1980 to 2014. 
 
-
-
-
-
-
 ```{python}
-sns.lmplot(df_personal, x = 'Year', y = 'perCapSpendAdjusted', hue='Region_Name')
+# Can we predict the spending of a state when given its year and population?
+
+# assumptions of linear regression:
+# linearity
+mat = df_personal.corr(numeric_only=True)
+mat['SpendAdjust']
+
+# SpendAdjust has a correlation coefficient of 0.96 with population 
+# and 0.21 with year
+x = df_personal[['Population', 'Year']]
+y = df_personal['SpendAdjust']
+
+# scale x values
+x_scaled = StandardScaler().fit_transform(x)
+
+x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=17)
+
+# fit model
+model = LinearRegression().fit(x_train, y_train)
+y_pred = model.predict(x_test)
+
+print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
+print("R-squared:", r2_score(y_test, y_pred))
+print("score:", model.score(x, y))
+print("coef:", model.coef_)
+
+# Residual Plot
+residuals = y_test - y_pred
+plt.scatter(y_pred, residuals, alpha=0.5)
+plt.xlabel('Predicted Values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot')
+plt.axhline(y=0, color='red', linestyle='--')
 plt.show()
 
-x = df_personal['Year'].values.reshape((-1, 1))
-y = df_personal['perCapSpendAdjusted']
-reg = LinearRegression().fit(x, y)
-
-print("score:", reg.score(x, y))
-print("coef:", reg.coef_)
-print("intercept:", reg.intercept_)
-```
-
-```{python}
-# How much do individual states differ from the national average?
-
-# national average for spending per capita on all items across time
-cap_avgs = df_personal.groupby('Year', as_index=False)['perCapSpendAdjusted'].mean()
-
-sns.lmplot(cap_avgs, x='Year', y='perCapSpendAdjusted')
-plt.ylim(0,0.02)
+# Predicted vs Actual Plot
+plt.scatter(y_test, y_pred, alpha=0.5)
+plt.xlabel('Actual Values')
+plt.ylabel('Predicted Values')
+plt.title('Predicted vs Actual Values')
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=4)
 plt.show()
 
-dc_only = df_personal[df_personal['State'] == 'District of Columbia']
+# Add a constant to the model
+x_train_sm = sm.add_constant(x_train)
+model_sm = sm.OLS(y_train, x_train_sm).fit()
+print(model_sm.summary())
 
-# which state is the highest above average?
-sns.lmplot(dc_only, x='Year', y='perCapSpendAdjusted')
-plt.ylim(0,0.02)
+# Q-Q Plot for residuals
+sm.qqplot(model_sm.resid, line='s')
+plt.title('Q-Q Plot of Residuals')
 plt.show()
-```
-
-```{python}
-states = ['Alabama','Alaska','Arizona','Arkansas',
-          'California','Colorado','Connecticut','Delaware',
-          'District of Columbia','Florida','Georgia','Hawaii',
-          'Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky',
-          'Louisiana','Maine','Maryland','Massachusetts','Michigan',
-          'Minnesota','Mississippi','Missouri','Montana','Nebraska',
-          'Nevada','New Hampshire','New Jersey','New Mexico',
-          'New York','North Carolina','North Dakota','Ohio',
-          'Oklahoma','Oregon','Pennsylvania','Rhode Island',
-          'South Carolina','South Dakota','Tennessee','Texas',
-          'Utah','Vermont','Virginia','Washington','West Virginia',
-          'Wisconsin','Wyoming']
-
-results = []
-
-for state in states:
-  df_state = df_personal[df_personal['State'] == state]
-
-  x = df_state['Year'].values.reshape((-1, 1))
-  y = df_state['perCapSpendAdjusted']
-
-  state_model = LinearRegression().fit(x, y)
-  print("score:", state_model.score(x, y))
-  print("coef:", state_model.coef_)
-  print("intercept:", state_model.intercept_)
-
-  results.append([state, state_model.score(x, y), state_model.coef_])
-
-results_df = pd.DataFrame(results, columns = ['State', 'Score', 'Coef'])
-
-results_df.sort_values(by='Coef', ascending=False, inplace=True)
 
 ```
