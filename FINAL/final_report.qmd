@@ -13,10 +13,6 @@ jupyter: python3
 feedback from presentation:
 Showing multiple time series plots as a single group of scatter plot points doesn't really make sense. A line graph would have been more appropriate.
 
-The slope coefficients seem like they would be sensitive to the absolute value of the variable. I think it would be more correct for it to be normalized based on percent / proportion.
-
-Axes labels were not super clear (should say millions of dollars per person per capita)
-
 Even though there were a lot of unanswered questions, just saying there could be unknown reasons without offering any speculation is unsatisfying. What additional info would you need to answer those questions? Where would be the first places you could look?
 
 
@@ -33,13 +29,20 @@ This report will seek to answer the question: How has healthcare spending by sta
 
 To answer this question, we examined a dataset of healthcare spending from 1980 to 2014, which reported individual state spending and spending by item category. Dr. Gore provided us with a census dataset which we used to match states and years to their corresponding populations. To account for inflation, we adjusted the spending amounts in the original dataset using the python package Cpi by Palewire, which uses the Consumer Price Index. After adjusting for inflation, we calculated spending per capita by dividing the spending by the state population. 
 
-Healthcare items reported by this dataset include: Hospital Care; Physician & Clinical Services; Other Professional Services; Dental Services; Home Health Care; Prescription Drugs; Durable Medical Products; Other Non-durable Medical Products; Nursing Home Care; and Other Health, Residential, and Personal Care. 
+Healthcare items reported by this dataset include: Hospital Care; Physician & Clinical Services; Other Professional Services; Dental Services; Home Health Care; Prescription Drugs; Durable Medical Products; Other Non-durable Medical Products; Nursing Home Care; and Other Health, Residential, and Personal Care. By the definition on the CDC website, Personal Healthcare Spending is all healthcare spending categories combined. 
 
 ## Results
 
 
 
 ## Conclusion
+
+In our exploration of the spending patterns we found that healthcare spending is increasing at a rate that outpaces inflation. The District of Columbia is an outlier for high spending, largely due to their very high hospital care costs. More research and analysis is needed to explain why DC hospitals are so much more expensive than in other states. DC is the most expensive "state" to live in, but that does not fully explain why hospital care in particular is more expensive. It's possible that they have care laws that are causing an increase in price, such as serving patients without insurance or requing expensive tests for patients that are not required in other states. 
+
+Thirty four states have experienced a cost percent change of more than 200% between 1980 and 2014. New Hampshire and Vermont have experienced a percent change of more than 300%. There is some regional connection among the states with the greatest or least percent changes. Among the 5 states that experienced the greatest increase, 3 are in New England. Among the 5 states that expereienced the least increase, 3 are in the Southwest. It's possible that there is a climate connection, but a political connection is more likely. Data on healthcare policies and laws would be needed to identify any connections. 
+
+This data set does not include any information from the last 11 years, we know that health care spending continued to increase, especially after COVID-19. Further research could explore how spending has changed since 2020, identifying where costs are increasing fastest, both by region and category. 
+
 
 ## References
 
@@ -55,14 +58,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import cpi 
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import PredictionErrorDisplay
 from scipy.stats import probplot
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-# cpi.update()
 df_all = pd.read_csv("./datasets/healthcare_spending_states.csv")
 df_personal = df_all[df_all['Item'] == 'Personal Health Care (Millions of Dollars)']
 df_items = df_all[df_all['Item'] != 'Personal Health Care (Millions of Dollars)']
@@ -74,7 +76,7 @@ sns.lineplot(df_items, x='Year', y='SpendAdjust', hue='Item')
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 plt.xlabel("Year")
 plt.ylabel("Millions of Dollars")
-# plt.title("Spending in Millions of Dollars Per Person Per Capita by Item(1980-2014)")
+# plt.title("Spending by Item in Millions of Dollars (1980-2014)")
 plt.show()
 ```
 
@@ -85,11 +87,11 @@ plt.show()
 df_personal_noDC = df_personal[df_personal['State'] != 'District of Columbia']
 sns.lineplot(df_personal_noDC, x = 'Year', y = 'perCapSpendAdjusted', hue='Region_Name')
 plt.xlabel("Year")
-plt.ylabel("Millions of Dollars Per Person Per Capita")
+plt.ylabel("Spending per Capita in Millions of Dollars")
 plt.show()
 ```
 
-**Fig 2.** Spending in Millions of Dollars Per Person Per Capita by Region (1980-2014). 
+**Fig 2.** Spending per Capita in Millions of Dollars by Region, DC excluded (1980-2014). 
 
 
 ```{python}
@@ -111,7 +113,7 @@ delta
 
 ```
 
-**Table 1.** Percent growth on healthcare spending (measured in millions of dollars per person per capita) among states from 1980 to 2014. 
+**Table 1.** Percent growth on healthcare spending (measured in millions of dollars per capita) among states from 1980 to 2014. 
 
 
 
