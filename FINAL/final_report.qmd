@@ -21,7 +21,7 @@ This report will seek to answer the question: How has healthcare spending change
 
 This question can be further broken down by examining trends in healthcare spending among states/regions and spending items, such as hospital care and medical products.
 
-Understanding how healthcare spending has changed over time reveals not only the financial burden on households, but also the strain on public budgets and the economy. Tracking these trends helps policymakers identify whether spending growth is sustainable, whether resources are being allocated efficiently, and how disparities across regions or income groups may be widening. Additionally, trends based on spending items inform what 
+Understanding how healthcare spending has changed over time reveals not only the financial burden on households, but also the strain on public budgets and the economy. Tracking these trends helps policymakers identify whether spending growth is sustainable, whether resources are being allocated efficiently, and how disparities across regions or income groups may be widening. Additionally, trends based on spending items inform which categories differ from others.
 
 ## Methods
 
@@ -33,7 +33,7 @@ Healthcare items reported by this dataset include: Hospital Care; Physician & Cl
 
 Because representing every state on one graph would be visually difficult to interpret, we chose to create a figure representing regions rather than states to visualize regional spending. A line plot was created with the year as the explanatory variable, spending per capita in millions of dollars as the response variable, and color-coded by region (Fig 2). Washington DC was excluded from this figure because its spending was an outlier. Upon noticing Washington DC's high spending, we created a scatterplot with the year as the explanatory variable, spending per capita in millions of dollars as the response variable, and color-coded by item (Fig 3).
 
-Sklearn was used to create a multi linear regression model using population and year as explanatory variables (features) and inflation-adjusted spending as the response variable. Population and spending had a correlation coefficient of 0.96; year and spending had a lower correlation coefficient of 0.21; both produced p-values of less than 0.01. The variance inflation factor (VIF) of these features were both close to 1, indicating an absence of multicolinearity. Both features were scaled to have a mean of 0 and a standard deviation of 1, which standardized their ranges. The dataset was then split into test data and training data at a proportion of 80% training data, which was used to fit the model, and 20% test data, which was used to evaluate the model's accuracy. After fitting, the model produced an R-squared of 0.94 and slope coefficients of 57940.08 and 8540.23 for population and year. Plots of residuals and predicted vs. actual values were created to visually assess model fit, and a Quantile-Quantile plot was created to assess normality of the features.
+Sklearn was used to create a multi linear regression model using population and year as explanatory variables (features) and inflation-adjusted spending as the response variable. The motivation behind this model was to determine if we could predict a state's spending based on its population during a given year. Population and spending had a correlation coefficient of 0.96; year and spending had a lower correlation coefficient of 0.21; both produced p-values of less than 0.01. The variance inflation factor (VIF) of these features were both close to 1, indicating an absence of multicolinearity. Both features were scaled to have a mean of 0 and a standard deviation of 1, which standardized their ranges. The dataset was then split into test data and training data at a proportion of 80% training data, which was used to fit the model, and 20% test data, which was used to evaluate the model's accuracy. After fitting, the model produced an R-squared of 0.94 and slope coefficients of 57940.08 and 8540.23 for population and year. Plots of residuals (Fig 4) and predicted vs. actual values (Fig 5) were created to visually assess model fit, and a Quantile-Quantile plot was created to assess normality of the features (Fig 6).
 
 ## Results
 
@@ -41,13 +41,15 @@ As seen in Table 1, thirty-four states have experienced a cost percent change of
 
 Inspecting spending per capita by year, it appears that every region roughly follows the same trend of increasing somewhat linearly over time (Fig 2). Despite following the same general shape, the difference between each region increases over time, with New England spending the most and the Rocky Mountains and Southwest spending the least by 2014. This agrees with the percent changes found in Table 1.
 
-As mentioned, Washington DC was excluded from Figure 2 because of its disproportionate influence on the Mideast. This is explained by DC's high spending on Hospital Care. Aside from this item, other items follow similar patterns to other states, which suggests that hospital care is much more expensive than other states.
+As mentioned, Washington DC was excluded from Figure 2 because of its disproportionate influence on the Mideast. This is explained by DC's high spending on Hospital Care. Aside from this item, other items follow similar patterns to other states, which suggests that DC spends more on hospital care than other states.
 
-**need to explain the results of the linear regression, it's an ok model but not very good. models made for each state, region, or item might be more useful.**
+The residual plot of the model does not indicate homoscedasticity (Fig 4). The predicted vs actual values closely follows the y = x line, with a few points deviating from the line around the median (Fig 5). Most points that closely follow the line are in the lower range of the data, implying better fit in the lower ranges. The Quantile-Quantile plot shows an S-shaped pattern, indicating that the data is not normally distributed (Fig 6). Considering these diagnostics, this model is not very useful for its intended purpose of predicting spending. Some improvements would be to make separate models for each state rather than using data from the whole country, or further narrowing the question by creating models specific to each item by state. 
 
 ## Conclusion
 
 In our exploration of spending patterns, we found that healthcare spending is increasing at a rate that outpaces inflation. The District of Columbia is an outlier for high spending, largely due to its very high hospital care costs. More research and analysis are needed to explain why DC hospitals are so much more expensive than those in other states. DC is the most expensive “state” to live in, but that does not fully explain why hospital care in particular is more expensive. They may have care laws that are driving up prices, such as requiring patients to pay out of pocket for services that are covered in other states or requiring expensive tests that are not required in other states.
+
+Undercoverage bias could potentially be impacting our data. We know that our data represents healthcare spending in the US, but we don't know how that money is being counted. Is it measured by insurance claims, state spending, individual out of pocket, or some combination thereof. Additionally, if a patient pays their bill with a personal loan or credit card, that debt is not recorded as medical debt. Debt is not the same as spending, but since we do not know how our data was collected, this could contribute to some missingness.
 
 This data set does not include any information from the last 11 years. We know that health care spending continued to increase, especially after COVID-19. Further research could explore how spending has changed since 2020, identifying where costs are growing fastest, both by region and category.
 
@@ -160,7 +162,7 @@ y = df_personal['SpendAdjust']
 x_scaled = StandardScaler().fit_transform(x)
 
 # split into training and test
-x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=19)
+x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=501)
 
 # fit model
 model = LinearRegression().fit(x_train, y_train)
@@ -204,7 +206,7 @@ plt.axhline(y=0, color='red', linestyle='--')
 plt.show()
 ```
 
-**Figure 4.** Plot of residuals for the multi linear regression model.
+**Fig 4.** Plot of residuals for the multi linear regression model.
 
 ```{python}
 # Predicted vs Actual Plot
@@ -216,7 +218,7 @@ plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=4
 plt.show()
 ```
 
-**Figure 5.** Plot of predicted vs. actual values for the multi linear regression model.
+**Fig 5.** Plot of predicted vs. actual values for the multi linear regression model.
 
 ```{python}
 # Q-Q Plot for residuals
@@ -225,7 +227,7 @@ plt.title('Q-Q Plot of Residuals')
 plt.show()
 ```
 
-**Figure 6.** Quantile-Quantile plot for the multi linear regression model.
+**Fig 6.** Quantile-Quantile plot for the multi linear regression model.
 
 ```{python}
 # can we plot it?
@@ -239,4 +241,4 @@ axes.set_zlabel("Speanding")
 plt.show()
 ```
 
-**Figure 7.** 3D scatterplot of Population, Year, and Spending (adjusted for inflation).
+**Fig 7.** 3D scatterplot of Population, Year, and Spending (adjusted for inflation).
