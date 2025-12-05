@@ -58,7 +58,7 @@ This data set does not include any information from the last 11 years, we know t
 
 ## References
 
-https://palewi.re/docs/cpi/#id6
+https://palewi.re/docs/cpi/
 
 https://www.bls.gov/cpi/
 
@@ -75,8 +75,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import PredictionErrorDisplay, mean_squared_error, r2_score
-from scipy.stats import probplot
+from scipy.stats import probplot, pearsonr
 import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 df_all = pd.read_csv("./datasets/healthcare_spending_states.csv")
 df_personal = df_all[df_all['Item'] == 'Personal Health Care (Millions of Dollars)']
@@ -107,6 +108,7 @@ plt.show()
 
 
 ```{python}
+# percent changes from 1980 to 2014 by state
 df_2014 = df_personal[df_personal['Year'] == 2014]
 df_1980 = df_personal[df_personal['Year'] == 1980]
 
@@ -121,7 +123,7 @@ delta['Percent Change'] = (delta['Spending Per Capita in 2014'] - delta['Spendin
 
 delta.sort_values(by='Percent Change', inplace=True, ascending=False, ignore_index=True)
 
-pd.options.display.float_format = '{:,.5f}'.format
+pd.options.display.float_format = '{:.5f}'.format
 delta['Percent Change'] = delta['Percent Change'].apply(lambda x: '{:.2f}%'.format(x))
 
 display(delta)
@@ -132,25 +134,25 @@ display(delta)
 ```{python}
 # Can we predict the spending of a state when given its year and population?
 
-# assumptions of linear regression:
-# linearity
-mat = df_personal.corr(numeric_only=True)
-mat['SpendAdjust']
+# correlation coefficients
+# SpendAdjust and population
+pop_spend_pearson = pearsonr(df_personal['Population'], df_personal['SpendAdjust'])
+year_spend_pearson = pearsonr(df_personal['Year'], df_personal['SpendAdjust'])
 
-# SpendAdjust has a correlation coefficient of 0.96 with population 
-# and 0.21 with year
 x = df_personal[['Population', 'Year']]
 y = df_personal['SpendAdjust']
 
 # scale x values
 x_scaled = StandardScaler().fit_transform(x)
 
-x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=17)
+# split into training and test
+x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=19)
 
 # fit model
 model = LinearRegression().fit(x_train, y_train)
 y_pred = model.predict(x_test)
 
+# checking fit
 print("Mean Squared Error:", mean_squared_error(y_test, y_pred))
 print("R-squared:", r2_score(y_test, y_pred))
 print("score:", model.score(x, y))
@@ -182,5 +184,11 @@ print(model_sm.summary())
 sm.qqplot(model_sm.resid, line='s')
 plt.title('Q-Q Plot of Residuals')
 plt.show()
+
+# VIF
+vif_data = pd.DataFrame()
+vif_data['Feature'] = ['Population', 'Year']
+vif_data['VIF'] = [variance_inflation_factor(x_scaled, i) for i in range(x_scaled.shape[1])]
+print(vif_data)
 
 ```
